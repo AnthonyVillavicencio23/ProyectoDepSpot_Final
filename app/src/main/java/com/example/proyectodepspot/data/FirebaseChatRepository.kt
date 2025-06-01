@@ -13,6 +13,8 @@ import com.example.proyectodepspot.api.OpenAIConfig
 import com.example.proyectodepspot.api.ChatRequest
 import com.example.proyectodepspot.api.Message as APIMessage
 import com.example.proyectodepspot.api.OpenAIService
+import com.example.proyectodepspot.utils.DepressionDetector
+import com.example.proyectodepspot.utils.TwilioService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -21,6 +23,9 @@ class FirebaseChatRepository {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private val usuariosCollection = db.collection("usuarios")
+    private val contactosCollection = db.collection("contactos_apoyo")
+    private val depressionDetector = DepressionDetector()
+    private val twilioService = TwilioService()
     
     private val openAIService = Retrofit.Builder()
         .baseUrl(OpenAIConfig.BASE_URL)
@@ -79,6 +84,32 @@ class FirebaseChatRepository {
             .collection("messages")
             .add(message)
             .await()
+
+        // Si es un mensaje del usuario, verificar signos depresivos
+        if (sendAsUser && depressionDetector.detectarSignosDepresivos(content)) {
+            // Obtener contactos de apoyo del usuario
+            val userEmail = auth.currentUser?.email ?: return
+            val contactos = contactosCollection
+                .whereEqualTo("userEmail", userEmail)
+                .get()
+                .await()
+                .toObjects(ContactoApoyo::class.java)
+
+            // Enviar SMS a cada contacto de apoyo
+            contactos.forEach { contacto ->
+                twilioService.enviarSMS(
+                    numeroDestino = contacto.telefono,
+                    mensaje = "El usuario tiene síntomas depresivos",
+                    callback = { success, error ->
+                        if (success) {
+                            Log.d(TAG, "SMS enviado exitosamente a ${contacto.telefono}")
+                        } else {
+                            Log.e(TAG, "Error al enviar SMS: $error")
+                        }
+                    }
+                )
+            }
+        }
 
         try {
             // Obtener historial de mensajes (últimos 10 mensajes)
