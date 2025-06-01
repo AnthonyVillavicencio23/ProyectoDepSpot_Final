@@ -15,7 +15,7 @@ class DepressionDetector {
             "me siento culpable", "me siento cansado", "me siento agotado",
             "no tengo energía", "no tengo motivación", "no tengo ilusión",
             "no tengo ganas de vivir", "prefiero estar muerto", "quiero morir",
-            "mejor estaría muerto", "no quiero seguir", "quiero terminar con todo"
+            "mejor estaría muerto", "no quiero seguir", "quiero terminar con todo", "me muero"
         )
     }
 
