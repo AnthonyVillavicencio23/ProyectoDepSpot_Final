@@ -2,7 +2,7 @@ package com.example.proyectodepspot.api
 
 object OpenAIConfig {
     const val BASE_URL = "https://api.openai.com/v1/"
-    const val API_KEY = "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"
+    const val API_KEY = "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"
     const val MODEL = "gpt-4o-mini"
     const val SYSTEM_PROMPT = """Eres un asistente virtual especializado en salud mental y apoyo emocional. 
         Tu objetivo es proporcionar una escucha empática y apoyo a las personas que están pasando por momentos difíciles.
