@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "582312398298",
+    "project_id": "db-depspot",
+    "storage_bucket": "db-depspot.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:582312398298:android:ef48787784810a57a804e3",
+        "android_client_info": {
+          "package_name": "com.example.proyectodepspot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBucbjAVDquPeHG8lK-IEuGya-6YOoCZs8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

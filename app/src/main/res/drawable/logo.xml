@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    
+    <!-- Círculo exterior -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M60,60m-54,0a54,54 0,1 1,108 0a54,54 0,1 1,-108 0"/>
+    
+    <!-- Círculo interior -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,60m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0"/>
+    
+    <!-- Letra D -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M45,30 L45,90 L65,90 C75,90 85,80 85,60 C85,40 75,30 65,30 L45,30 Z M55,40 L65,40 C70,40 75,45 75,60 C75,75 70,80 65,80 L55,80 L55,40 Z"/>
+</vector> 

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/botIcon"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/icono_deppy"
+        android:visibility="gone"
+        android:padding="4dp"
+        android:layout_marginStart="1dp"
+        android:background="@drawable/circle_background"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/messageContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:layout_marginEnd="6dp"
+        android:background="@drawable/bg_message_received"
+        android:padding="12dp"
+        android:maxWidth="260dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/botIcon"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/messageText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/message_text"
+            android:textSize="17sp"
+            android:lineSpacingExtra="4dp"
+            android:layout_margin="8dp"
+            android:maxWidth="228dp" />
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/messageTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/timestamp_text"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="@id/messageContainer"
+        app:layout_constraintEnd_toEndOf="@id/messageContainer"
+        app:layout_constraintTop_toBottomOf="@id/messageContainer" />
+
+</androidx.constraintlayout.widget.ConstraintLayout> 

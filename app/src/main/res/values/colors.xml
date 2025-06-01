@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Colores principales -->
+    <color name="colorPrimary">#2196F3</color>
+    <color name="colorPrimaryDark">#1976D2</color>
+    <color name="colorAccent">#03A9F4</color>
+    
+    <!-- Nombres alternativos para compatibilidad -->
+    <color name="primary">@color/colorPrimary</color>
+    <color name="primary_dark">@color/colorPrimaryDark</color>
+    <color name="accent">@color/colorAccent</color>
+    
+    <!-- Colores básicos -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="gray">#757575</color>
+    <color name="light_gray">#EEEEEE</color>
+    
+    <!-- Colores para mensajes -->
+    <color name="message_background">#F5F9FC</color>
+    <color name="message_background_own">#E8F4F1</color>
+    <color name="message_text">#2C3E50</color>
+    <color name="timestamp_text">#95A5A6</color>
+    
+    <!-- Colores de la interfaz -->
+    <color name="background">#FFFFFF</color>
+    <color name="input_background">#F8F9FA</color>
+    <color name="hint_text">#95A5A6</color>
+    
+    <!-- Colores del sistema -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    
+    <!-- Nuevos colores -->
+    <color name="primary_light">#BBDEFB</color>
+    <color name="secondary">#FF4081</color>
+    <color name="blue">#2196F3</color>
+</resources>
