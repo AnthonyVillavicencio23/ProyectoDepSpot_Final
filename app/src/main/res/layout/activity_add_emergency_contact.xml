@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="64dp"
-        android:text="Ingrese el número de emergencia"
+        android:text="Ingrese el contacto de emergencia"
         android:textColor="@color/primary"
         android:textSize="24sp"
         android:textStyle="bold"
@@ -39,20 +39,20 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/tilPhoneNumber"
+        android:id="@+id/tilContactEmail"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="32dp"
         android:layout_marginTop="16dp"
-        android:hint="Número de teléfono"
+        android:hint="Correo electrónico"
         app:layout_constraintTop_toBottomOf="@id/tilContactName">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etPhoneNumber"
+            android:id="@+id/etContactEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="phone" />
+            android:inputType="textEmailAddress" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -65,6 +65,6 @@
         android:padding="12dp"
         android:text="Agregar contacto"
         android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/tilPhoneNumber" />
+        app:layout_constraintTop_toBottomOf="@id/tilContactEmail" />
 
 </androidx.constraintlayout.widget.ConstraintLayout> 

@@ -15,7 +15,7 @@ class AddEmergencyContactActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var db: FirebaseFirestore
     private lateinit var tilContactName: TextInputLayout
-    private lateinit var tilPhoneNumber: TextInputLayout
+    private lateinit var tilContactEmail: TextInputLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +27,7 @@ class AddEmergencyContactActivity : AppCompatActivity() {
 
         // Inicializar vistas
         tilContactName = findViewById(R.id.tilContactName)
-        tilPhoneNumber = findViewById(R.id.tilPhoneNumber)
+        tilContactEmail = findViewById(R.id.tilContactEmail)
 
         // Configurar botón de agregar contacto
         findViewById<MaterialButton>(R.id.btnAddContact).setOnClickListener {
@@ -39,7 +39,7 @@ class AddEmergencyContactActivity : AppCompatActivity() {
 
     private fun validateFields(): Boolean {
         val contactName = tilContactName.editText?.text.toString()
-        val phoneNumber = tilPhoneNumber.editText?.text.toString()
+        val contactEmail = tilContactEmail.editText?.text.toString()
 
         var isValid = true
 
@@ -50,14 +50,14 @@ class AddEmergencyContactActivity : AppCompatActivity() {
             tilContactName.error = null
         }
 
-        if (phoneNumber.isEmpty()) {
-            tilPhoneNumber.error = "El número de teléfono es requerido"
+        if (contactEmail.isEmpty()) {
+            tilContactEmail.error = "El correo electrónico es requerido"
             isValid = false
-        } else if (!phoneNumber.matches(Regex("^[+]?[0-9]{10,13}$"))) {
-            tilPhoneNumber.error = "Ingrese un número de teléfono válido"
+        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(contactEmail).matches()) {
+            tilContactEmail.error = "Ingrese un correo electrónico válido"
             isValid = false
         } else {
-            tilPhoneNumber.error = null
+            tilContactEmail.error = null
         }
 
         return isValid
@@ -67,12 +67,12 @@ class AddEmergencyContactActivity : AppCompatActivity() {
         val userEmail = auth.currentUser?.email
         if (userEmail != null) {
             val contactName = tilContactName.editText?.text.toString()
-            val phoneNumber = tilPhoneNumber.editText?.text.toString()
+            val contactEmail = tilContactEmail.editText?.text.toString()
 
             val contact = hashMapOf(
                 "id" to UUID.randomUUID().toString(),
                 "nombre" to contactName,
-                "telefono" to phoneNumber,
+                "correo" to contactEmail,
                 "userEmail" to userEmail
             )
 
