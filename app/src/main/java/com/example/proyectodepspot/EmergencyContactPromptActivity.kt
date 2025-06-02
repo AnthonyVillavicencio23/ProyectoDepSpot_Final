@@ -86,20 +86,20 @@ class EmergencyContactPromptActivity : AppCompatActivity() {
     }
 
     private fun saveEmergencyContact() {
-        val userId = auth.currentUser?.uid ?: return
+        val userEmail = auth.currentUser?.email ?: return
         val contactName = etContactName.text.toString().trim()
         val contactEmail = etContactEmail.text.toString().trim()
 
+        // Generar un nuevo ID para el contacto
+        val docRef = db.collection("contactos_apoyo").document()
         val contactData = hashMapOf(
+            "id" to docRef.id,
             "nombre" to contactName,
-            "email" to contactEmail,
-            "tipo" to "emergencia"
+            "correo" to contactEmail,
+            "userEmail" to userEmail
         )
 
-        db.collection("usuarios")
-            .document(userId)
-            .collection("contactos")
-            .add(contactData)
+        docRef.set(contactData)
             .addOnSuccessListener {
                 Toast.makeText(this, "Contacto guardado exitosamente", Toast.LENGTH_SHORT).show()
                 navigateToMainActivity()

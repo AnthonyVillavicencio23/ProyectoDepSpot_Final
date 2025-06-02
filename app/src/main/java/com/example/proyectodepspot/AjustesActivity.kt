@@ -88,11 +88,6 @@ class AjustesActivity : AppCompatActivity() {
             startActivity(Intent(this, GestionarCuentaActivity::class.java))
         }
 
-        // Botón de evaluación de depresión
-        findViewById<MaterialButton>(R.id.buttonDepressionTest).setOnClickListener {
-            startActivity(Intent(this, EvaluacionDepresionActivity::class.java))
-        }
-
         // Botón de notificaciones
         findViewById<MaterialButton>(R.id.buttonNotifications).setOnClickListener {
             startActivity(Intent(this, NotificacionesActivity::class.java))
