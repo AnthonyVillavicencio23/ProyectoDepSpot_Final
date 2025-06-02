@@ -21,6 +21,7 @@ class FirebaseChatRepository {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private val usuariosCollection = db.collection("usuarios")
+    private val depresionDetector = DepresionDetector()
     
     private val openAIService = Retrofit.Builder()
         .baseUrl(OpenAIConfig.BASE_URL)
@@ -68,8 +69,13 @@ class FirebaseChatRepository {
             return
         }
 
+        // Analizar el mensaje en busca de signos depresivos
+        if (sendAsUser) {
+            depresionDetector.analizarMensaje(userId, content)
+        }
+
         // Enviar mensaje del usuario o del bot según el parámetro sendAsUser
-        val message = Message(
+        val newMessage = Message(
             senderId = if (sendAsUser) userId else "bot_depresion",
             content = content,
             timestamp = timestamp
@@ -77,7 +83,7 @@ class FirebaseChatRepository {
 
         usuariosCollection.document(userId)
             .collection("messages")
-            .add(message)
+            .add(newMessage)
             .await()
 
         try {
@@ -91,11 +97,11 @@ class FirebaseChatRepository {
                 .await()
                 .documents
                 .mapNotNull { doc ->
-                    val message = doc.toObject(Message::class.java)
-                    if (message != null) {
+                    val messageObj = doc.toObject(Message::class.java)
+                    if (messageObj != null) {
                         APIMessage(
-                            role = if (message.senderId == userId) "user" else "assistant",
-                            content = message.content
+                            role = if (messageObj.senderId == userId) "user" else "assistant",
+                            content = messageObj.content
                         )
                     } else null
                 }

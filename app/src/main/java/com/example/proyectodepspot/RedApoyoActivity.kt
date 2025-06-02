@@ -60,19 +60,19 @@ class RedApoyoActivity : AppCompatActivity() {
     private fun mostrarDialogoAgregarContacto() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_agregar_contacto, null)
         val editTextNombre = dialogView.findViewById<TextInputEditText>(R.id.editTextNombre)
-        val editTextTelefono = dialogView.findViewById<TextInputEditText>(R.id.editTextTelefono)
+        val editTextCorreo = dialogView.findViewById<TextInputEditText>(R.id.editTextCorreo)
 
         AlertDialog.Builder(this)
             .setTitle("Agregar Contacto de Apoyo")
             .setView(dialogView)
             .setPositiveButton("Guardar") { _, _ ->
                 val nombre = editTextNombre.text.toString()
-                val telefono = editTextTelefono.text.toString()
+                val correo = editTextCorreo.text.toString()
 
-                if (nombre.isNotBlank() && telefono.isNotBlank()) {
+                if (nombre.isNotBlank() && correo.isNotBlank()) {
                     val nuevoContacto = ContactoApoyo(
                         nombre = nombre,
-                        telefono = telefono
+                        correo = correo
                     )
                     guardarContacto(nuevoContacto)
                 } else {
@@ -86,22 +86,22 @@ class RedApoyoActivity : AppCompatActivity() {
     private fun mostrarDialogoEditarContacto(contacto: ContactoApoyo) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_agregar_contacto, null)
         val editTextNombre = dialogView.findViewById<TextInputEditText>(R.id.editTextNombre)
-        val editTextTelefono = dialogView.findViewById<TextInputEditText>(R.id.editTextTelefono)
+        val editTextCorreo = dialogView.findViewById<TextInputEditText>(R.id.editTextCorreo)
 
         editTextNombre.setText(contacto.nombre)
-        editTextTelefono.setText(contacto.telefono)
+        editTextCorreo.setText(contacto.correo)
 
         AlertDialog.Builder(this)
             .setTitle("Editar Contacto")
             .setView(dialogView)
             .setPositiveButton("Guardar") { _, _ ->
                 val nombre = editTextNombre.text.toString()
-                val telefono = editTextTelefono.text.toString()
+                val correo = editTextCorreo.text.toString()
 
-                if (nombre.isNotBlank() && telefono.isNotBlank()) {
+                if (nombre.isNotBlank() && correo.isNotBlank()) {
                     val contactoActualizado = contacto.copy(
                         nombre = nombre,
-                        telefono = telefono
+                        correo = correo
                     )
                     guardarContacto(contactoActualizado)
                 } else {

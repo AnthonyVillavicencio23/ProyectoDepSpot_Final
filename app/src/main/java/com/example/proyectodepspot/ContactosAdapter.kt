@@ -14,7 +14,7 @@ class ContactosAdapter(
 
     class ContactoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val textViewNombre: TextView = view.findViewById(R.id.textViewNombre)
-        val textViewTelefono: TextView = view.findViewById(R.id.textViewTelefono)
+        val textViewCorreo: TextView = view.findViewById(R.id.textViewCorreo)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactoViewHolder {
@@ -26,7 +26,7 @@ class ContactosAdapter(
     override fun onBindViewHolder(holder: ContactoViewHolder, position: Int) {
         val contacto = contactos[position]
         holder.textViewNombre.text = contacto.nombre
-        holder.textViewTelefono.text = contacto.telefono
+        holder.textViewCorreo.text = contacto.correo
         holder.itemView.setOnClickListener { onContactoClick(contacto) }
     }
 
