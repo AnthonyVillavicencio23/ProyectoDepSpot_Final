@@ -36,33 +36,8 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
     private lateinit var btnCompletadoIA: Button
     private lateinit var btnGenerarDesafio: Button
     private lateinit var textViewFechaLimitePredeterminado: TextView
-
-    private val desafios = listOf(
-        Desafio(
-            "Cada día es una nueva oportunidad para crecer",
-            "Lee cinco páginas del libro que te gusta y subraya un párrafo que te impacte"
-        ),
-        Desafio(
-            "Pequeños pasos llevan a grandes cambios",
-            "Dedica 10 minutos a meditar y enfócate en tu respiración"
-        ),
-        Desafio(
-            "Tu bienestar es una prioridad",
-            "Escribe tres cosas por las que estés agradecido hoy"
-        ),
-        Desafio(
-            "La constancia es la clave del éxito",
-            "Realiza 15 minutos de ejercicio físico que disfrutes"
-        ),
-        Desafio(
-            "Cada momento es una oportunidad para ser mejor",
-            "Practica un acto de bondad con alguien cercano"
-        ),
-        Desafio(
-            "El autocuidado es fundamental",
-            "Toma un momento para disfrutar de tu bebida favorita con calma"
-        )
-    )
+    private lateinit var btnResumenDesafios: Button
+    private lateinit var btnResumenDesafiosIA: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -82,12 +57,18 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
             btnCompletadoIA = findViewById(R.id.btnCompletadoIA)
             btnGenerarDesafio = findViewById(R.id.btnGenerarDesafio)
             textViewFechaLimitePredeterminado = findViewById(R.id.textViewFechaLimitePredeterminado)
+            btnResumenDesafios = findViewById(R.id.btnResumenDesafios)
+            btnResumenDesafiosIA = findViewById(R.id.btnResumenDesafiosIA)
 
+            // Configurar navegación y botones
             setupBottomNavigation()
-            cargarDesafioDiario()
-            cargarDesafioIA()
             setupBotones()
             setupCalendarioButton()
+            setupResumenButtons()
+
+            // Cargar desafíos
+            cargarDesafioDiario()
+            cargarDesafioIA()
         } catch (e: Exception) {
             Toast.makeText(this, "Error al inicializar: ${e.message}", Toast.LENGTH_LONG).show()
             finish()
@@ -110,77 +91,66 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
 
     private fun cargarDesafioDiario() {
         val userId = auth.currentUser?.uid ?: return
-        val hoy = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
+        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
 
         db.collection("usuarios")
             .document(userId)
             .collection("desafios")
             .document("ultimo_desafio")
+            .collection(fechaActual)
+            .document("desafio")
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val ultimoDia = document.getLong("dia") ?: 0
                     val completado = document.getBoolean("completado") ?: false
-                    
-                    if (ultimoDia == hoy.toLong()) {
-                        // Mostrar el desafío del día
-                        val desafioIndex = document.getLong("desafio_index")?.toInt() ?: 0
-                        mostrarDesafio(desafioIndex)
-                        // Actualizar estado del botón
-                        btnCompletado.isEnabled = !completado
-                    } else {
-                        // Generar nuevo desafío
-                        generarNuevoDesafio(userId, hoy)
-                    }
+                    val desafioIndex = document.getLong("desafio_index")?.toInt() ?: 0
+                    mostrarDesafio(desafioIndex)
+                    btnCompletado.isEnabled = !completado
                 } else {
-                    // Primera vez, generar desafío
-                    generarNuevoDesafio(userId, hoy)
+                    // Generar nuevo desafío
+                    generarNuevoDesafio(userId, fechaActual)
                 }
             }
     }
 
     private fun cargarDesafioIA() {
         val userId = auth.currentUser?.uid ?: return
-        val hoy = Calendar.getInstance().get(Calendar.DAY_OF_YEAR)
+        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
 
         db.collection("usuarios")
             .document(userId)
             .collection("desafios")
             .document("ultimo_desafio_ia")
+            .collection(fechaActual)
+            .document("desafio")
             .get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val ultimoDia = document.getLong("dia") ?: 0
-                    val completado = document.getBoolean("completado") ?: false
-                    
-                    if (ultimoDia == hoy.toLong()) {
-                        // Mostrar el desafío del día
-                        val frase = document.getString("frase_motivadora") ?: ""
-                        val desafio = document.getString("desafio") ?: "En espera"
-                        mostrarDesafioIA(frase, desafio)
-                        btnCompletadoIA.isEnabled = !completado && desafio != "En espera"
-                    } else {
-                        // Reiniciar para nuevo día
-                        reiniciarDesafioIA(userId, hoy)
-                    }
+                    val desafioIA = DesafioIA.fromMap(document.data ?: return@addOnSuccessListener)
+                    mostrarDesafioIA(desafioIA.fraseMotivadora, desafioIA.desafio)
+                    btnCompletadoIA.isEnabled = !desafioIA.completado && desafioIA.desafio != "En espera"
                 } else {
-                    // Primera vez
-                    reiniciarDesafioIA(userId, hoy)
+                    // Reiniciar para nuevo día
+                    reiniciarDesafioIA(userId, fechaActual)
                 }
             }
     }
 
-    private fun reiniciarDesafioIA(userId: String, dia: Int) {
+    private fun reiniciarDesafioIA(userId: String, fecha: String) {
+        val desafioIA = DesafioIA(
+            fraseMotivadora = "",
+            desafio = "En espera",
+            fecha = fecha,
+            completado = false
+        )
+
         db.collection("usuarios")
             .document(userId)
             .collection("desafios")
             .document("ultimo_desafio_ia")
-            .set(mapOf(
-                "dia" to dia,
-                "frase_motivadora" to "",
-                "desafio" to "En espera",
-                "completado" to false
-            ))
+            .collection(fecha)
+            .document("desafio")
+            .set(DesafioIA.toMap(desafioIA))
             .addOnSuccessListener {
                 mostrarDesafioIA("", "En espera")
                 btnCompletadoIA.isEnabled = false
@@ -214,6 +184,7 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
 
     private fun generarDesafioIA() {
         val userId = auth.currentUser?.uid ?: return
+        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
         btnGenerarDesafio.isEnabled = false
         btnGenerarDesafio.text = "Generando..."
 
@@ -267,29 +238,31 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
                 val response = GPT4Service.generateResponse(prompt)
                 val jsonResponse = JSONObject(response)
                 
-                val frase = jsonResponse.getString("frase_motivadora")
-                val desafio = jsonResponse.getString("desafio")
+                val desafioIA = DesafioIA(
+                    fraseMotivadora = jsonResponse.getString("frase_motivadora"),
+                    desafio = jsonResponse.getString("desafio"),
+                    fecha = fechaActual,
+                    completado = false
+                )
 
                 withContext(Dispatchers.Main) {
-                    mostrarDesafioIA(frase, desafio)
+                    mostrarDesafioIA(desafioIA.fraseMotivadora, desafioIA.desafio)
                     btnCompletadoIA.isEnabled = true
                     btnGenerarDesafio.isEnabled = true
                     btnGenerarDesafio.text = "Generar Desafío"
 
                     // Guardar en Firestore
-                    val updates = hashMapOf<String, Any>(
-                        "frase_motivadora" to frase,
-                        "desafio" to desafio
-                    )
                     db.collection("usuarios")
                         .document(userId)
                         .collection("desafios")
                         .document("ultimo_desafio_ia")
-                        .update(updates)
+                        .collection(fechaActual)
+                        .document("desafio")
+                        .set(DesafioIA.toMap(desafioIA))
 
                     // Actualizar historial de desafíos
                     val nuevosDesafios = desafiosAnteriores.toMutableList().apply {
-                        add(desafio)
+                        add(desafioIA.desafio)
                         // Mantener solo los últimos 10 desafíos
                         if (size > 10) removeAt(0)
                     }
@@ -314,10 +287,14 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
 
     private fun marcarDesafioIACompletado() {
         val userId = auth.currentUser?.uid ?: return
+        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
+
         db.collection("usuarios")
             .document(userId)
             .collection("desafios")
             .document("ultimo_desafio_ia")
+            .collection(fechaActual)
+            .document("desafio")
             .update("completado", true)
             .addOnSuccessListener {
                 Toast.makeText(this, "¡Felicidades por completar tu desafío personalizado!", Toast.LENGTH_SHORT).show()
@@ -325,18 +302,20 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
             }
     }
 
-    private fun generarNuevoDesafio(userId: String, dia: Int) {
-        val desafioIndex = (0 until desafios.size).random()
-        val desafio = desafios[desafioIndex]
+    private fun generarNuevoDesafio(userId: String, fecha: String) {
+        val desafioIndex = (0 until DesafiosPredeterminados.lista.size).random()
+        val desafio = DesafiosPredeterminados.lista[desafioIndex]
 
         db.collection("usuarios")
             .document(userId)
             .collection("desafios")
             .document("ultimo_desafio")
+            .collection(fecha)
+            .document("desafio")
             .set(mapOf(
-                "dia" to dia,
                 "desafio_index" to desafioIndex,
-                "completado" to false
+                "completado" to false,
+                "fecha" to fecha
             ))
             .addOnSuccessListener {
                 mostrarDesafio(desafioIndex)
@@ -345,7 +324,7 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
     }
 
     private fun mostrarDesafio(index: Int) {
-        val desafio = desafios[index]
+        val desafio = DesafiosPredeterminados.lista[index]
         fraseMotivadora.text = desafio.fraseMotivadora
         desafioDiario.text = desafio.desafio
 
@@ -371,10 +350,14 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
 
     private fun marcarDesafioCompletado() {
         val userId = auth.currentUser?.uid ?: return
+        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
+
         db.collection("usuarios")
             .document(userId)
             .collection("desafios")
             .document("ultimo_desafio")
+            .collection(fechaActual)
+            .document("desafio")
             .update("completado", true)
             .addOnSuccessListener {
                 Toast.makeText(this, "¡Felicidades por completar tu desafío!", Toast.LENGTH_SHORT).show()
@@ -409,9 +392,20 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
             startActivity(Intent(this, CalendarioEmocionalActivity::class.java))
         }
     }
-}
 
-data class Desafio(
-    val fraseMotivadora: String,
-    val desafio: String
-) 
+    private fun setupResumenButtons() {
+        btnResumenDesafios.setOnClickListener {
+            val intent = Intent(this, ResumenDesafiosActivity::class.java).apply {
+                putExtra("es_desafio_ia", false)
+            }
+            startActivity(intent)
+        }
+
+        btnResumenDesafiosIA.setOnClickListener {
+            val intent = Intent(this, ResumenDesafiosActivity::class.java).apply {
+                putExtra("es_desafio_ia", true)
+            }
+            startActivity(intent)
+        }
+    }
+} 

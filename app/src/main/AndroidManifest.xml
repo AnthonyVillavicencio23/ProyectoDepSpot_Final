@@ -78,14 +78,6 @@
             android:exported="false" />
 
         <activity
-            android:name=".EvaluacionDepresionActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".TestDepresionActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".NotificacionesActivity"
             android:exported="false" />
 
@@ -100,6 +92,11 @@
 
         <activity
             android:name=".CalendarioEmocionalActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ProyectoDepSpot" />
+
+        <activity
+            android:name=".ResumenDesafiosActivity"
             android:exported="false"
             android:theme="@style/Theme.ProyectoDepSpot" />
             
