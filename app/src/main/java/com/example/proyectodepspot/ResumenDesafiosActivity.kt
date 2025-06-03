@@ -98,11 +98,24 @@ class ResumenDesafiosActivity : AppCompatActivity() {
             Desafíos de la semana:
             ${formatearDesafiosParaGPT(desafios)}
             
-            IMPORTANTE: Responde en un tono amigable y motivador, como un coach personal.
-            Responde SOLO con el texto del resumen, sin formato JSON ni estructura adicional."""
+            IMPORTANTE: 
+            - Responde en un tono amigable y motivador, como si fueras un compañero.
+            - Responde SOLO con el texto del resumen, sin un formato JSON ni estructura adicional.
+            - NO incluyas palabras como "mensaje:", "resumen:", o cualquier otro prefijo. Solo debe ser una conversacion normal y seguida.
+            - NO uses comillas ni llaves en el texto.
+            - El texto debe ser limpio. 
+            - Asimismo, los parrafos no deben ser tan extensos"""
 
         return try {
-            GPT4Service.generateResponse(prompt)
+            val respuesta = GPT4Service.generateResponse(prompt)
+            // Limpiar la respuesta de cualquier formato JSON o prefijos
+            val textoLimpio = respuesta
+                .replace(Regex("""["{}]"""), "") // Eliminar comillas y llaves
+                .replace(Regex("""(mensaje|resumen|texto):\s*""", RegexOption.IGNORE_CASE), "") // Eliminar prefijos comunes
+                .replace(Regex("""\s+"""), " ") // Reemplazar múltiples espacios por uno solo
+                .trim() // Eliminar espacios al inicio y final
+            
+            textoLimpio
         } catch (e: Exception) {
             "Error al generar el resumen: ${e.message}"
         }

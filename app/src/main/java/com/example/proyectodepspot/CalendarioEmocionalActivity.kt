@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 class CalendarioEmocionalActivity : AppCompatActivity() {
     private lateinit var gridEmociones: GridLayout
@@ -29,7 +30,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private lateinit var chatRepository: FirebaseChatRepository
     private lateinit var textoRangoSemana: TextView
-    private var semanaActual: Calendar = Calendar.getInstance(Locale("es", "PE"))
+    private var semanaActual: Calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"), Locale("es", "PE"))
     private val emociones = mapOf(
         "feliz" to "😊",
         "triste" to "😢",
@@ -125,7 +126,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
         textoRangoSemana.text = "$inicioSemana - $finSemana ${calendar.get(Calendar.YEAR)}"
 
         // Verificar si estamos en la semana actual
-        val esSemanaActual = esMismaSemana(Calendar.getInstance(Locale("es", "PE")), semanaActual)
+        val esSemanaActual = esMismaSemana(Calendar.getInstance(TimeZone.getTimeZone("America/Lima"), Locale("es", "PE")), semanaActual)
         
         // Actualizar las fechas y emociones
         setupFechas()
@@ -175,7 +176,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
         }
 
         // Obtener el día actual (1-7, donde 1 es lunes)
-        val calendar = Calendar.getInstance(Locale("es", "PE"))
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"), Locale("es", "PE"))
         val diaActual = calendar.get(Calendar.DAY_OF_WEEK)
         val diaSemanaActual = if (diaActual == Calendar.SUNDAY) 7 else diaActual - 1
 
@@ -208,7 +209,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
     }
 
     private fun actualizarVisibilidadSeleccionEmocion(esSemanaActual: Boolean) {
-        val calendar = Calendar.getInstance(Locale("es", "PE"))
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"), Locale("es", "PE"))
         val esHoy = esMismaSemana(calendar, semanaActual) && 
                    calendar.get(Calendar.DAY_OF_WEEK) == semanaActual.get(Calendar.DAY_OF_WEEK)
 
@@ -239,7 +240,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
 
     private fun actualizarEmocionHoy(emocion: String) {
         val userId = auth.currentUser?.uid ?: return
-        val calendar = Calendar.getInstance(Locale("es", "PE"))
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"), Locale("es", "PE"))
         val fecha = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(calendar.time)
 
         // Solo permitir actualizar si estamos en la semana actual
