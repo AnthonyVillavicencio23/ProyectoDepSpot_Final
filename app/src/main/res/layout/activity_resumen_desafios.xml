@@ -28,20 +28,32 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="16dp"
         android:padding="16dp"
-        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+        app:layout_constraintBottom_toTopOf="@id/btnRegresar"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
         <TextView
             android:id="@+id/textViewResumen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="Cargando resumen..."
             android:textColor="@color/black"
-            android:textSize="16sp"
-            android:lineSpacingExtra="8dp" />
+            android:textSize="18sp"
+            android:lineSpacingExtra="8dp"
+            android:fontFamily="sans-serif-light" />
 
     </ScrollView>
+
+    <Button
+        android:id="@+id/btnRegresar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Regresar"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"

@@ -1,6 +1,7 @@
 package com.example.proyectodepspot
 
 import android.os.Bundle
+import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -36,6 +37,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
         textViewTitulo.text = if (esDesafioIA) "Resumen de Desafíos Personalizados" else "Resumen de Desafíos Diarios"
 
         setupBottomNavigation()
+        setupRegresarButton()
         cargarResumenSemana()
     }
 
@@ -74,13 +76,18 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                     calendar.add(Calendar.DAY_OF_MONTH, 1)
                 }
 
+                android.util.Log.d("ResumenDesafios", "Desafíos recolectados: ${desafiosSemana.size}")
+
                 // Generar resumen con GPT
                 val resumen = generarResumenGPT(desafiosSemana)
+                android.util.Log.d("ResumenDesafios", "Resumen generado: $resumen")
                 
                 withContext(Dispatchers.Main) {
                     textViewResumen.text = resumen
+                    android.util.Log.d("ResumenDesafios", "Texto asignado al TextView")
                 }
             } catch (e: Exception) {
+                android.util.Log.e("ResumenDesafios", "Error en cargarResumenSemana: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     textViewResumen.text = "Error al cargar el resumen: ${e.message}"
                 }
@@ -91,32 +98,53 @@ class ResumenDesafiosActivity : AppCompatActivity() {
     private suspend fun generarResumenGPT(desafios: List<Map<String, Any>>): String {
         val prompt = """Analiza los siguientes desafíos de la semana y genera un resumen ameno y motivador.
             Incluye:
-            1. Un resumen general de la semana
-            2. Puntos fuertes y áreas de mejora
-            3. Sugerencias para la próxima semana
+            1. Un resumen general de la semana (máximo 4 líneas)
+            2. Puntos fuertes y áreas de mejora (máximo 4 líneas)
+            3. Sugerencias para la próxima semana (máximo 4 líneas)
             
             Desafíos de la semana:
             ${formatearDesafiosParaGPT(desafios)}
             
             IMPORTANTE: 
             - Responde en un tono amigable y motivador, como si fueras un compañero.
-            - Responde SOLO con el texto del resumen, sin un formato JSON ni estructura adicional.
-            - NO incluyas palabras como "mensaje:", "resumen:", o cualquier otro prefijo. Solo debe ser una conversacion normal y seguida.
+            - Estructura tu respuesta en 3 párrafos separados, cada uno con su etiqueta:
+              Parrafo1: [aquí el resumen general de la semana]
+              Parrafo2: [aquí los puntos fuertes y áreas de mejora]
+              Parrafo3: [aquí las sugerencias para la próxima semana]
+            - Cada párrafo debe ser conciso y directo, máximo 4 líneas.
             - NO uses comillas ni llaves en el texto.
-            - El texto debe ser limpio. 
-            - Asimismo, los parrafos no deben ser tan extensos"""
+            - El objeto JSON debe tener el nombre "resumen"."""
 
         return try {
             val respuesta = GPT4Service.generateResponse(prompt)
-            // Limpiar la respuesta de cualquier formato JSON o prefijos
-            val textoLimpio = respuesta
-                .replace(Regex("""["{}]"""), "") // Eliminar comillas y llaves
-                .replace(Regex("""(mensaje|resumen|texto):\s*""", RegexOption.IGNORE_CASE), "") // Eliminar prefijos comunes
-                .replace(Regex("""\s+"""), " ") // Reemplazar múltiples espacios por uno solo
-                .trim() // Eliminar espacios al inicio y final
+            android.util.Log.d("ResumenDesafios", "Respuesta GPT: $respuesta")
             
-            textoLimpio
+            // Parsear el JSON anidado
+            val jsonObject = JSONObject(respuesta)
+            
+            // Intentar obtener el objeto con diferentes nombres posibles
+            val respuestaObj = when {
+                jsonObject.has("resumen") -> jsonObject.getJSONObject("resumen")
+                jsonObject.has("respuesta") -> jsonObject.getJSONObject("respuesta")
+                jsonObject.has("resultado") -> jsonObject.getJSONObject("resultado")
+                else -> jsonObject // Si no encuentra ninguno, usar el objeto raíz
+            }
+            
+            val parrafo1 = respuestaObj.optString("Parrafo1", "").trim()
+            val parrafo2 = respuestaObj.optString("Parrafo2", "").trim()
+            val parrafo3 = respuestaObj.optString("Parrafo3", "").trim()
+            
+            android.util.Log.d("ResumenDesafios", "Párrafo 1: $parrafo1")
+            android.util.Log.d("ResumenDesafios", "Párrafo 2: $parrafo2")
+            android.util.Log.d("ResumenDesafios", "Párrafo 3: $parrafo3")
+            
+            // Combinar los párrafos con doble salto de línea entre ellos
+            val textoFinal = "$parrafo1\n\n$parrafo2\n\n$parrafo3"
+            android.util.Log.d("ResumenDesafios", "Texto final: $textoFinal")
+            
+            textoFinal
         } catch (e: Exception) {
+            android.util.Log.e("ResumenDesafios", "Error: ${e.message}", e)
             "Error al generar el resumen: ${e.message}"
         }
     }
@@ -165,6 +193,12 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                 R.id.nav_emotions -> true
                 else -> false
             }
+        }
+    }
+
+    private fun setupRegresarButton() {
+        findViewById<Button>(R.id.btnRegresar).setOnClickListener {
+            finish()
         }
     }
 } 

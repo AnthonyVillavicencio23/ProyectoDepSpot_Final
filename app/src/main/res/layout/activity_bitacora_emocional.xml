@@ -13,11 +13,11 @@
         android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/tituloBitacora"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Bitácora Emocional"
+    <TextView
+        android:id="@+id/tituloBitacora"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Bitácora Emocional"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
             android:textColor="@android:color/white" />
 
@@ -101,13 +101,21 @@
                         android:textStyle="italic"
                         android:text="Fecha límite: 28 de mayo a las 12:00 PM" />
 
-                    <Button
-                        android:id="@+id/btnCompletado"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Completado"
-                        android:layout_gravity="center"
-                        android:layout_marginTop="16dp"/>
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_marginTop="16dp">
+
+                        <Button
+                            android:id="@+id/btnCompletado"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Completado"
+                            android:layout_marginStart="8dp"/>
+
+                    </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -118,9 +126,9 @@
                 android:layout_marginTop="32dp"
                 android:text="Desafío Personalizado con IA"
                 android:textSize="20sp"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/cardReto" />
 
             <androidx.cardview.widget.CardView
@@ -183,7 +191,11 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Generar Desafío"
-                            android:layout_marginEnd="8dp"/>
+                            android:visibility="gone"
+                            app:layout_constraintBottom_toBottomOf="@id/cardRetoIA"
+                            app:layout_constraintEnd_toEndOf="@id/cardRetoIA"
+                            app:layout_constraintStart_toStartOf="@id/cardRetoIA"
+                            app:layout_constraintTop_toBottomOf="@id/desafioDiarioIA" />
 
                         <Button
                             android:id="@+id/btnCompletadoIA"

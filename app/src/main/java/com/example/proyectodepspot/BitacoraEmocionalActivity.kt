@@ -20,6 +20,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import android.util.Log
+import com.google.firebase.Timestamp
 
 
 
@@ -89,9 +91,29 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
         }
     }
 
+    private fun getPeruDate(): String {
+        val peruTimeZone = TimeZone.getTimeZone("America/Lima")
+        val calendar = Calendar.getInstance()
+        calendar.timeZone = peruTimeZone
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE"))
+        dateFormat.timeZone = peruTimeZone
+        return dateFormat.format(calendar.time)
+    }
+
     private fun cargarDesafioDiario() {
         val userId = auth.currentUser?.uid ?: return
-        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
+        val fechaActual = getPeruDate()
+
+        // Logs de depuración
+        val localTime = Calendar.getInstance().time
+        val now = Timestamp.now()
+        val peruCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"))
+        Log.d("DEBUG_TIME", "Local time: $localTime")
+        Log.d("DEBUG_TIME", "Firestore timestamp: $now")
+        Log.d("DEBUG_TIME", "Peru time: ${peruCalendar.time}")
+        Log.d("DEBUG_TIME", "Fecha actual (Peru): $fechaActual")
+        Log.d("DEBUG_TIME", "TimeZone Peru: ${peruCalendar.timeZone.id}")
+        Log.d("DEBUG_TIME", "TimeZone Local: ${TimeZone.getDefault().id}")
 
         db.collection("usuarios")
             .document(userId)
@@ -115,7 +137,18 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
 
     private fun cargarDesafioIA() {
         val userId = auth.currentUser?.uid ?: return
-        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
+        val fechaActual = getPeruDate()
+
+        // Logs de depuración
+        val localTime = Calendar.getInstance().time
+        val now = Timestamp.now()
+        val peruCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"))
+        Log.d("DEBUG_TIME_IA", "Local time: $localTime")
+        Log.d("DEBUG_TIME_IA", "Firestore timestamp: $now")
+        Log.d("DEBUG_TIME_IA", "Peru time: ${peruCalendar.time}")
+        Log.d("DEBUG_TIME_IA", "Fecha actual (Peru): $fechaActual")
+        Log.d("DEBUG_TIME_IA", "TimeZone Peru: ${peruCalendar.timeZone.id}")
+        Log.d("DEBUG_TIME_IA", "TimeZone Local: ${TimeZone.getDefault().id}")
 
         db.collection("usuarios")
             .document(userId)
@@ -130,8 +163,8 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
                     mostrarDesafioIA(desafioIA.fraseMotivadora, desafioIA.desafio)
                     btnCompletadoIA.isEnabled = !desafioIA.completado && desafioIA.desafio != "En espera"
                 } else {
-                    // Reiniciar para nuevo día
-                    reiniciarDesafioIA(userId, fechaActual)
+                    // Generar nuevo desafío automáticamente
+                    generarDesafioIA()
                 }
             }
     }
@@ -184,9 +217,9 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
 
     private fun generarDesafioIA() {
         val userId = auth.currentUser?.uid ?: return
-        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
-        btnGenerarDesafio.isEnabled = false
-        btnGenerarDesafio.text = "Generando..."
+        val peruTimeZone = TimeZone.getTimeZone("America/Lima")
+        val calendar = Calendar.getInstance(peruTimeZone)
+        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(calendar.time)
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -248,8 +281,6 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     mostrarDesafioIA(desafioIA.fraseMotivadora, desafioIA.desafio)
                     btnCompletadoIA.isEnabled = true
-                    btnGenerarDesafio.isEnabled = true
-                    btnGenerarDesafio.text = "Generar Desafío"
 
                     // Guardar en Firestore
                     db.collection("usuarios")
@@ -278,8 +309,6 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
                     Toast.makeText(this@BitacoraEmocionalActivity, 
                         "Error al generar el desafío: ${e.message}", 
                         Toast.LENGTH_LONG).show()
-                    btnGenerarDesafio.isEnabled = true
-                    btnGenerarDesafio.text = "Generar Desafío"
                 }
             }
         }
@@ -287,7 +316,7 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
 
     private fun marcarDesafioIACompletado() {
         val userId = auth.currentUser?.uid ?: return
-        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
+        val fechaActual = getPeruDate()
 
         db.collection("usuarios")
             .document(userId)
@@ -302,7 +331,9 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
             }
     }
 
-    private fun generarNuevoDesafio(userId: String, fecha: String) {
+    private fun generarNuevoDesafio(userId: String, fechaActual: String) {
+        val peruTimeZone = TimeZone.getTimeZone("America/Lima")
+        val calendar = Calendar.getInstance(peruTimeZone)
         val desafioIndex = (0 until DesafiosPredeterminados.lista.size).random()
         val desafio = DesafiosPredeterminados.lista[desafioIndex]
 
@@ -310,17 +341,16 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
             .document(userId)
             .collection("desafios")
             .document("ultimo_desafio")
-            .collection(fecha)
+            .collection(fechaActual)
             .document("desafio")
             .set(mapOf(
                 "desafio_index" to desafioIndex,
                 "completado" to false,
-                "fecha" to fecha
+                "fecha" to fechaActual
             ))
-            .addOnSuccessListener {
-                mostrarDesafio(desafioIndex)
-                btnCompletado.isEnabled = true
-            }
+
+        mostrarDesafio(desafioIndex)
+        btnCompletado.isEnabled = true
     }
 
     private fun mostrarDesafio(index: Int) {
@@ -350,7 +380,7 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
 
     private fun marcarDesafioCompletado() {
         val userId = auth.currentUser?.uid ?: return
-        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(Calendar.getInstance().time)
+        val fechaActual = getPeruDate()
 
         db.collection("usuarios")
             .document(userId)
