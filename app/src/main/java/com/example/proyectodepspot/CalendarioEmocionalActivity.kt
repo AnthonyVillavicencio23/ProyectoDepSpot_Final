@@ -110,6 +110,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
     private fun actualizarVistaSemana() {
         // Actualizar el texto del rango de la semana
         val dateFormat = SimpleDateFormat("dd.MM", Locale("es", "PE"))
+        dateFormat.timeZone = TimeZone.getTimeZone("America/Lima")
         val calendar = semanaActual.clone() as Calendar
         
         // Ir al lunes de la semana
@@ -138,6 +139,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
     private fun setupFechas() {
         val calendar = semanaActual.clone() as Calendar
         val dateFormat = SimpleDateFormat("dd/MM", Locale("es", "PE"))
+        dateFormat.timeZone = TimeZone.getTimeZone("America/Lima")
 
         // Ajustar al lunes de la semana
         while (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
@@ -238,10 +240,19 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
         }
     }
 
+    private fun getPeruDate(): String {
+        val peruTimeZone = TimeZone.getTimeZone("America/Lima")
+        val calendar = Calendar.getInstance()
+        calendar.timeZone = peruTimeZone
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE"))
+        dateFormat.timeZone = peruTimeZone
+        return dateFormat.format(calendar.time)
+    }
+
     private fun actualizarEmocionHoy(emocion: String) {
         val userId = auth.currentUser?.uid ?: return
+        val fecha = getPeruDate()
         val calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"), Locale("es", "PE"))
-        val fecha = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(calendar.time)
 
         // Solo permitir actualizar si estamos en la semana actual
         if (esMismaSemana(calendar, semanaActual)) {
@@ -382,7 +393,10 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
 
         // Cargar emociones para cada día de la semana
         for (i in 0..6) {
-            val fecha = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(calendar.time)
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE"))
+            dateFormat.timeZone = TimeZone.getTimeZone("America/Lima")
+            val fecha = dateFormat.format(calendar.time)
+            
             db.collection("usuarios")
                 .document(userId)
                 .collection("emociones")

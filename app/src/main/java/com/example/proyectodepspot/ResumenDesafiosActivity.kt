@@ -16,6 +16,7 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 class ResumenDesafiosActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
@@ -41,45 +42,155 @@ class ResumenDesafiosActivity : AppCompatActivity() {
         cargarResumenSemana()
     }
 
+    private fun getPeruDate(): String {
+        val peruTimeZone = TimeZone.getTimeZone("America/Lima")
+        val calendar = Calendar.getInstance()
+        calendar.timeZone = peruTimeZone
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE"))
+        dateFormat.timeZone = peruTimeZone
+        return dateFormat.format(calendar.time)
+    }
+
     private fun cargarResumenSemana() {
         val userId = auth.currentUser?.uid ?: return
-        val calendar = Calendar.getInstance(Locale("es", "PE"))
-        
-        // Ir al lunes de la semana actual
-        while (calendar.get(Calendar.DAY_OF_WEEK) != Calendar.MONDAY) {
-            calendar.add(Calendar.DAY_OF_MONTH, -1)
-        }
-
+        val peruTimeZone = TimeZone.getTimeZone("America/Lima")
+        val calendar = Calendar.getInstance(peruTimeZone)
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE"))
-        val desafiosSemana = mutableListOf<Map<String, Any>>()
+        dateFormat.timeZone = peruTimeZone
+        
+        // Obtener la fecha actual en Perú
+        val fechaActualStr = getPeruDate()
+        val fechaActual = dateFormat.parse(fechaActualStr)
+        
+        // Retroceder 30 días para obtener un historial más amplio
+        calendar.time = fechaActual
+        calendar.add(Calendar.DAY_OF_MONTH, -30)
+        val fechaInicio = calendar.time
+        
+        val desafiosPredeterminados = mutableListOf<Map<String, Any>>()
+        val desafiosIA = mutableListOf<Map<String, Any>>()
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // Recolectar desafíos de la semana
-                for (i in 0..6) {
+                // Recolectar todos los desafíos del período
+                calendar.time = fechaInicio
+                while (!calendar.time.after(fechaActual)) {
                     val fecha = dateFormat.format(calendar.time)
-                    val coleccion = if (esDesafioIA) "ultimo_desafio_ia" else "ultimo_desafio"
                     
-                    val document = db.collection("usuarios")
+                    // Obtener desafío predeterminado
+                    val docPredeterminado = db.collection("usuarios")
                         .document(userId)
                         .collection("desafios")
-                        .document(coleccion)
+                        .document("ultimo_desafio")
                         .collection(fecha)
                         .document("desafio")
                         .get()
                         .await()
 
-                    if (document.exists()) {
-                        val datos = document.data ?: continue
-                        desafiosSemana.add(datos)
+                    if (docPredeterminado.exists()) {
+                        val datos = docPredeterminado.data ?: null
+                        if (datos != null) {
+                            desafiosPredeterminados.add(datos)
+                            android.util.Log.d("ResumenDesafios", "Desafío predeterminado encontrado para fecha: $fecha")
+                        }
                     }
+
+                    // Obtener desafío IA
+                    val docIA = db.collection("usuarios")
+                        .document(userId)
+                        .collection("desafios")
+                        .document("ultimo_desafio_ia")
+                        .collection(fecha)
+                        .document("desafio")
+                        .get()
+                        .await()
+
+                    if (docIA.exists()) {
+                        val datos = docIA.data ?: null
+                        if (datos != null) {
+                            desafiosIA.add(datos)
+                            android.util.Log.d("ResumenDesafios", "Desafío IA encontrado para fecha: $fecha")
+                        }
+                    }
+
                     calendar.add(Calendar.DAY_OF_MONTH, 1)
                 }
 
-                android.util.Log.d("ResumenDesafios", "Desafíos recolectados: ${desafiosSemana.size}")
+                // Ordenar los desafíos por fecha (más recientes primero)
+                desafiosPredeterminados.sortByDescending { it["fecha"] as String }
+                desafiosIA.sortByDescending { it["fecha"] as String }
+
+                android.util.Log.d("ResumenDesafios", "Total desafíos predeterminados: ${desafiosPredeterminados.size}")
+                android.util.Log.d("ResumenDesafios", "Total desafíos IA: ${desafiosIA.size}")
+
+                // Agrupar en pares (manteniendo el orden 1-2, 3-4, etc.) y filtrar solo los pares completos
+                val paresPredeterminados = desafiosPredeterminados.reversed()
+                    .chunked(2)
+                    .filter { it.size == 2 }
+                val paresIA = desafiosIA.reversed()
+                    .chunked(2)
+                    .filter { it.size == 2 }
+
+                android.util.Log.d("ResumenDesafios", "Pares predeterminados completos: ${paresPredeterminados.size}")
+                android.util.Log.d("ResumenDesafios", "Pares IA completos: ${paresIA.size}")
+
+                // Función para verificar si un par ha pasado su fecha límite
+                fun verificarParCompletado(par: List<Map<String, Any>>): Boolean {
+                    if (par.size < 2) return false
+                    
+                    // Verificar cada desafío individualmente
+                    val resultados = par.map { desafio ->
+                        val fechaDesafio = dateFormat.parse(desafio["fecha"] as String)
+                        val fechaLimite = Calendar.getInstance(peruTimeZone).apply {
+                            time = fechaDesafio
+                            set(Calendar.HOUR_OF_DAY, 12)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.time
+                        
+                        val haPasadoFechaLimite = fechaActual.after(fechaLimite)
+                        
+                        android.util.Log.d("ResumenDesafios", "Verificando desafío individual - Fecha: ${dateFormat.format(fechaDesafio)}")
+                        android.util.Log.d("ResumenDesafios", "Verificando desafío individual - Límite: ${dateFormat.format(fechaLimite)}")
+                        android.util.Log.d("ResumenDesafios", "Verificando desafío individual - Actual: ${dateFormat.format(fechaActual)}")
+                        android.util.Log.d("ResumenDesafios", "Verificando desafío individual - ¿Pasó límite?: $haPasadoFechaLimite")
+                        
+                        haPasadoFechaLimite
+                    }
+                    
+                    // El par está completo si todos los desafíos han pasado su fecha límite
+                    val parCompletado = resultados.all { it }
+                    android.util.Log.d("ResumenDesafios", "Resultado final del par: $parCompletado")
+                    
+                    return parCompletado
+                }
+
+                // Buscar el par más reciente que haya completado su fecha límite
+                val paresARevisar = if (esDesafioIA) paresIA else paresPredeterminados
+                var parCompletado: List<Map<String, Any>>? = null
+
+                // Revisar los pares del más reciente al más antiguo
+                for (par in paresARevisar.reversed()) {
+                    android.util.Log.d("ResumenDesafios", "Revisando par con fechas: ${par.map { it["fecha"] }}")
+                    if (verificarParCompletado(par)) {
+                        parCompletado = par
+                        android.util.Log.d("ResumenDesafios", "Par encontrado con fechas: ${par.map { it["fecha"] }}")
+                        break
+                    }
+                }
+
+                if (parCompletado == null) {
+                    withContext(Dispatchers.Main) {
+                        textViewResumen.text = "No hay pares de desafíos que hayan completado su fecha límite. Por favor, espera hasta que un par de desafíos haya expirado para ver el resumen."
+                    }
+                    return@launch
+                }
+
+                android.util.Log.d("ResumenDesafios", "Desafíos del par completado: ${parCompletado.size}")
 
                 // Generar resumen con GPT
-                val resumen = generarResumenGPT(desafiosSemana)
+                val resumen = generarResumenGPT(parCompletado)
                 android.util.Log.d("ResumenDesafios", "Resumen generado: $resumen")
                 
                 withContext(Dispatchers.Main) {
@@ -96,22 +207,22 @@ class ResumenDesafiosActivity : AppCompatActivity() {
     }
 
     private suspend fun generarResumenGPT(desafios: List<Map<String, Any>>): String {
-        val prompt = """Analiza los siguientes desafíos de la semana y genera un resumen ameno y motivador.
+        val prompt = """Analiza los siguientes desafíos de los últimos 2 días y genera un resumen ameno y motivador.
             Incluye:
-            1. Un resumen general de la semana (máximo 4 líneas)
-            2. Puntos fuertes y áreas de mejora (máximo 4 líneas)
-            3. Sugerencias para la próxima semana (máximo 4 líneas)
+            1. Un resumen general del período. Menciona los desafios claramente no importa si se completaron (máximo 4 líneas)
+            2. Puntos fuertes y áreas de mejora (máximo 3 líneas)
+            3. Sugerencias para los próximos días (máximo 3 líneas)
             
-            Desafíos de la semana:
+            Desafíos del período:
             ${formatearDesafiosParaGPT(desafios)}
             
             IMPORTANTE: 
             - Responde en un tono amigable y motivador, como si fueras un compañero.
             - Estructura tu respuesta en 3 párrafos separados, cada uno con su etiqueta:
-              Parrafo1: [aquí el resumen general de la semana]
+              Parrafo1: [aquí el resumen general del período]
               Parrafo2: [aquí los puntos fuertes y áreas de mejora]
-              Parrafo3: [aquí las sugerencias para la próxima semana]
-            - Cada párrafo debe ser conciso y directo, máximo 4 líneas.
+              Parrafo3: [aquí las sugerencias para los próximos días]
+            - Cada párrafo debe ser conciso y directo, máximo 3 líneas.
             - NO uses comillas ni llaves en el texto.
             - El objeto JSON debe tener el nombre "resumen"."""
 

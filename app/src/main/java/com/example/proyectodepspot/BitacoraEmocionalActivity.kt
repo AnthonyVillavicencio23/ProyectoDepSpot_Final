@@ -217,9 +217,7 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
 
     private fun generarDesafioIA() {
         val userId = auth.currentUser?.uid ?: return
-        val peruTimeZone = TimeZone.getTimeZone("America/Lima")
-        val calendar = Calendar.getInstance(peruTimeZone)
-        val fechaActual = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE")).format(calendar.time)
+        val fechaActual = getPeruDate()
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -392,7 +390,7 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
             .addOnSuccessListener {
                 Toast.makeText(this, "¡Felicidades por completar tu desafío!", Toast.LENGTH_SHORT).show()
                 btnCompletado.isEnabled = false
-            }
+        }
     }
 
     private fun setupBottomNavigation() {
