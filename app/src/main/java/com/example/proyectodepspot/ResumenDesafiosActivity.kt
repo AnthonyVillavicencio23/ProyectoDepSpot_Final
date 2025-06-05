@@ -278,7 +278,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
               Parrafo2: [aquí los puntos fuertes y áreas de mejora]
               Parrafo3: [aquí las sugerencias para los próximos días]
             - Cada párrafo debe ser conciso y directo, máximo 3 líneas.
-            - NO uses comillas ni llaves en el texto.
+            - NO uses comillas ni llaves en el texto
             - El objeto JSON debe tener el nombre "resumen"."""
 
         return try {
