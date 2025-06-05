@@ -170,9 +170,37 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                 val paresARevisar = if (esDesafioIA) paresIA else paresPredeterminados
                 var parCompletado: List<Map<String, Any>>? = null
 
+                // Obtener el último resumen guardado
+                val ultimoResumen = db.collection("usuarios")
+                    .document(userId)
+                    .collection("resumenes")
+                    .document(if (esDesafioIA) "ultimo_resumen_ia" else "ultimo_resumen_predeterminado")
+                    .get()
+                    .await()
+
+                var ultimoParFechas: List<String>? = null
+                if (ultimoResumen.exists()) {
+                    val resumen = ultimoResumen.data
+                    if (resumen != null) {
+                        ultimoParFechas = resumen["fechas"] as? List<String>
+                    }
+                }
+
                 // Revisar los pares del más reciente al más antiguo
                 for (par in paresARevisar.reversed()) {
                     android.util.Log.d("ResumenDesafios", "Revisando par con fechas: ${par.map { it["fecha"] }}")
+                    
+                    // Si hay un último resumen, verificar si este par es posterior
+                    if (ultimoParFechas != null) {
+                        val fechaUltimoPar = dateFormat.parse(ultimoParFechas.maxByOrNull { it })
+                        val fechaParActual = dateFormat.parse((par.map { it["fecha"] as String }).maxByOrNull { it })
+                        
+                        if (fechaParActual.before(fechaUltimoPar) || fechaParActual.equals(fechaUltimoPar)) {
+                            android.util.Log.d("ResumenDesafios", "Este par es anterior o igual al último resumen guardado")
+                            continue
+                        }
+                    }
+
                     if (verificarParCompletado(par)) {
                         parCompletado = par
                         android.util.Log.d("ResumenDesafios", "Par encontrado con fechas: ${par.map { it["fecha"] }}")
@@ -181,6 +209,18 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                 }
 
                 if (parCompletado == null) {
+                    // Si no se encontró un par nuevo, mostrar el último resumen guardado
+                    if (ultimoResumen.exists()) {
+                        val resumen = ultimoResumen.data
+                        if (resumen != null) {
+                            val resumenTexto = resumen["resumen"] as? String ?: ""
+                            withContext(Dispatchers.Main) {
+                                textViewResumen.text = resumenTexto
+                            }
+                            return@launch
+                        }
+                    }
+
                     withContext(Dispatchers.Main) {
                         textViewResumen.text = "No hay pares de desafíos que hayan completado su fecha límite. Por favor, espera hasta que un par de desafíos haya expirado para ver el resumen."
                     }
@@ -192,7 +232,22 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                 // Generar resumen con GPT
                 val resumen = generarResumenGPT(parCompletado)
                 android.util.Log.d("ResumenDesafios", "Resumen generado: $resumen")
-                
+
+                // Guardar el resumen generado con las fechas del par
+                val fechasPar = parCompletado.map { it["fecha"] as String }
+                val resumenData = hashMapOf(
+                    "resumen" to resumen,
+                    "fechas" to fechasPar,
+                    "fecha_generacion" to getPeruDate()
+                )
+
+                db.collection("usuarios")
+                    .document(userId)
+                    .collection("resumenes")
+                    .document(if (esDesafioIA) "ultimo_resumen_ia" else "ultimo_resumen_predeterminado")
+                    .set(resumenData)
+                    .await()
+
                 withContext(Dispatchers.Main) {
                     textViewResumen.text = resumen
                     android.util.Log.d("ResumenDesafios", "Texto asignado al TextView")
