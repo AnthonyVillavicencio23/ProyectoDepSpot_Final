@@ -23,6 +23,16 @@ class RedApoyoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_red_apoyo)
 
+        // Configurar la barra superior
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        toolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
+
         recyclerView = findViewById(R.id.recyclerViewContactos)
         val fabAgregarContacto = findViewById<FloatingActionButton>(R.id.fabAgregarContacto)
 

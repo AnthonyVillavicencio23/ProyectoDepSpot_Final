@@ -1,8 +1,10 @@
 package com.example.proyectodepspot
 
 import android.app.DatePickerDialog
+import android.graphics.Color
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
@@ -43,6 +45,16 @@ class GestionarCuentaActivity : AppCompatActivity() {
         fechaNacimientoTextView = findViewById(R.id.fechaNacimientoTextView)
         telefonoTextView = findViewById(R.id.celularTextView)
         correoTextView = findViewById(R.id.correoTextView)
+
+        // Configurar la barra superior
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        toolbar.setNavigationOnClickListener {
+            onBackPressed()
+        }
 
         // Configurar botones de edición
         findViewById<ImageButton>(R.id.editNombreButton).setOnClickListener {
@@ -125,9 +137,14 @@ class GestionarCuentaActivity : AppCompatActivity() {
 
     private fun showEditPopup(title: String, currentValue: String, onSave: (String) -> Unit) {
         val popupView = layoutInflater.inflate(R.layout.popup_edit_field, null)
+        
+        // Calcular el ancho del diálogo (90% del ancho de la pantalla)
+        val displayMetrics = resources.displayMetrics
+        val width = (displayMetrics.widthPixels * 0.9).toInt()
+        
         val popupWindow = PopupWindow(
             popupView,
-            ViewGroup.LayoutParams.MATCH_PARENT,
+            width,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             true
         )
@@ -154,9 +171,42 @@ class GestionarCuentaActivity : AppCompatActivity() {
             }
         }
 
+        // Crear un fondo oscuro
+        val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
+        val darkOverlay = View(this).apply {
+            setBackgroundColor(Color.BLACK)
+            alpha = 0f // Comenzar transparente
+        }
+        rootView.addView(darkOverlay, ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+
+        // Animar la aparición del fondo oscuro
+        darkOverlay.animate()
+            .alpha(0.5f)
+            .setDuration(200)
+            .start()
+
+        // Agregar fondo oscuro
+        popupWindow.setOnDismissListener {
+            // Animar el desvanecimiento del fondo oscuro
+            darkOverlay.animate()
+                .alpha(0f)
+                .setDuration(200)
+                .withEndAction {
+                    rootView.removeView(darkOverlay)
+                }
+                .start()
+        }
+
         // Mostrar popup
-        popupWindow.showAtLocation(findViewById(android.R.id.content), Gravity.CENTER, 0, 0)
+        popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0)
         currentPopupWindow = popupWindow
+
+        // Asegurarnos de que el popup tenga el estilo correcto
+        popupWindow.setBackgroundDrawable(resources.getDrawable(android.R.color.transparent, theme))
+        popupWindow.elevation = 8f
     }
 
     private fun updateField(field: String, value: String, onSuccess: () -> Unit) {

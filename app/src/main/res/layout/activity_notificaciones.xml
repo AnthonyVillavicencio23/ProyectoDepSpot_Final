@@ -41,6 +41,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Configuración de sonidos"
+                android:textSize="22sp"
+                android:fontFamily="sans-serif"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
                 android:textStyle="bold"
                 android:layout_marginBottom="16dp" />
@@ -57,7 +59,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="Sonido en mensajes de la IA"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif"
+                    android:textStyle="normal" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/soundSwitch"
@@ -71,6 +75,8 @@
                 android:layout_height="wrap_content"
                 android:text="Seleccionar tono de notificación"
                 android:textSize="16sp"
+                android:fontFamily="sans-serif"
+                android:textStyle="normal"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp" />
 
@@ -85,6 +91,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Tono 1 - Clásico"
+                    android:fontFamily="sans-serif"
+                    android:textStyle="normal"
                     android:padding="8dp" />
 
                 <RadioButton
@@ -92,6 +100,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Tono 2 - Suave"
+                    android:fontFamily="sans-serif"
+                    android:textStyle="normal"
                     android:padding="8dp" />
 
                 <RadioButton
@@ -99,30 +109,67 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="Tono 3 - Moderno"
+                    android:fontFamily="sans-serif"
+                    android:textStyle="normal"
                     android:padding="8dp" />
 
             </RadioGroup>
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/vibrationSwitch"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Vibración de notificaciones" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="16dp">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/pushNotificationSwitch"
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Vibración de notificaciones"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif"
+                    android:textStyle="normal" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/vibrationSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Notificaciones push" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Notificaciones push"
+                    android:textSize="16sp"
+                    android:fontFamily="sans-serif"
+                    android:textStyle="normal" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/pushNotificationSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/testButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="24dp"
+                android:layout_gravity="center"
                 android:text="Probar notificación"
+                android:textSize="16sp"
+                app:cornerRadius="24dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/pushNotificationSwitch" />

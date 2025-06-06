@@ -35,29 +35,43 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
             android:padding="16dp"
             android:background="?attr/colorPrimary"
             android:elevation="4dp">
 
-            <TextView
-                android:id="@+id/tvNombreCompleto"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:text="Cargando..." />
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@drawable/ic_person"
+                android:tint="@android:color/white"
+                android:layout_marginEnd="16dp"
+                android:contentDescription="Icono de usuario" />
 
-            <TextView
-                android:id="@+id/tvApodo"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:layout_marginTop="4dp"
-                android:text="Cargando..." />
+                android:orientation="vertical">
 
+                <TextView
+                    android:id="@+id/tvNombreCompleto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:text="Cargando..." />
+
+                <TextView
+                    android:id="@+id/tvApodo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:layout_marginTop="4dp"
+                    android:text="Cargando..." />
+
+            </LinearLayout>
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
@@ -94,7 +108,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Mi Red de Apoyo"
-                        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                        android:textColor="?attr/colorPrimary"
+                        android:alpha="1.00"
+                        android:fontFamily="sans-serif-light"
+                        android:textSize="18sp" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/buttonSupportNetwork"
@@ -125,7 +143,11 @@
                         android:layout_height="wrap_content"
                         android:padding="16dp"
                         android:text="Opciones"
-                        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                        android:textColor="?attr/colorPrimary"
+                        android:alpha="1.00"
+                        android:fontFamily="sans-serif-light"
+                        android:textSize="18sp" />
 
                     <View
                         android:layout_width="match_parent"
@@ -137,9 +159,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Gestionar mi cuenta"
+                        android:textSize="16sp"
                         android:paddingStart="0dp"
                         android:paddingEnd="16dp"
                         app:icon="@android:drawable/ic_menu_edit"
+                        app:iconSize="24dp"
                         app:iconGravity="start"
                         app:iconPadding="16dp"
                         app:contentPaddingStart="16dp"
@@ -156,9 +180,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Notificaciones"
+                        android:textSize="16sp"
                         android:paddingStart="0dp"
                         android:paddingEnd="16dp"
                         app:icon="@android:drawable/ic_menu_share"
+                        app:iconSize="24dp"
                         app:iconGravity="start"
                         app:iconPadding="16dp"
                         app:contentPaddingStart="16dp"
@@ -175,10 +201,12 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Cerrar sesión"
+                        android:textSize="16sp"
                         android:textColor="?attr/colorError"
                         android:paddingStart="0dp"
                         android:paddingEnd="16dp"
                         app:icon="@drawable/ic_logout"
+                        app:iconSize="24dp"
                         app:iconTint="?attr/colorError"
                         app:iconGravity="start"
                         app:iconPadding="16dp"

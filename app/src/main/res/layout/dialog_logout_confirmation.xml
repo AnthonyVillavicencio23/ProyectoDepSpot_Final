@@ -4,15 +4,19 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="24dp"
+    android:background="@drawable/rounded_dialog_background"
+    android:elevation="8dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="¿Estás seguro de que quieres cerrar tu sesión?"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textAlignment="center"
-        android:layout_marginBottom="24dp"/>
+        android:fontFamily="sans-serif-light"
+        android:textColor="?attr/colorPrimary"
+        android:layout_marginBottom="32dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,9 +29,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="No"
-            android:layout_marginEnd="16dp"
+            android:textSize="16sp"
             app:icon="@android:drawable/arrow_down_float"
             app:iconGravity="textStart"
+            android:layout_marginEnd="16dp"
+            app:cornerRadius="24dp"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
         <com.google.android.material.button.MaterialButton
@@ -35,8 +41,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sí"
+            android:textSize="16sp"
             app:icon="@android:drawable/arrow_up_float"
             app:iconGravity="textStart"
+            app:cornerRadius="24dp"
             style="@style/Widget.MaterialComponents.Button"/>
 
     </LinearLayout>

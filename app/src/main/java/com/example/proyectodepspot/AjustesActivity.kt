@@ -36,7 +36,6 @@ class AjustesActivity : AppCompatActivity() {
         // Configurar la barra superior
         val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         // Configurar los botones
