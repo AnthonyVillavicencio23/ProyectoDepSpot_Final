@@ -2,15 +2,17 @@ package com.example.proyectodepspot
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import android.util.Patterns
-import android.widget.Toast
 
 class EmergencyContactPromptActivity : AppCompatActivity() {
     private lateinit var tilContactName: TextInputLayout
@@ -30,6 +32,7 @@ class EmergencyContactPromptActivity : AppCompatActivity() {
         setContentView(R.layout.activity_emergency_contact_prompt)
 
         initializeViews()
+        setupTextChangeListeners()
         setupClickListeners()
     }
 
@@ -47,6 +50,20 @@ class EmergencyContactPromptActivity : AppCompatActivity() {
         tvDescription.text = "Agrega un contacto de emergencia que pueda ayudarte en momentos difíciles. Este contacto recibirá notificaciones cuando detectemos que podrías necesitar ayuda."
     }
 
+    private fun setupTextChangeListeners() {
+        val fields = listOf(tilContactName, tilContactEmail)
+
+        fields.forEach { field ->
+            field.editText?.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    clearError(field)
+                }
+            })
+        }
+    }
+
     private fun setupClickListeners() {
         btnAddContact.setOnClickListener {
             if (validateInputs()) {
@@ -60,29 +77,61 @@ class EmergencyContactPromptActivity : AppCompatActivity() {
     }
 
     private fun validateInputs(): Boolean {
-        var isValid = true
+        val contactName = etContactName.text.toString().trim()
+        val contactEmail = etContactEmail.text.toString().trim()
 
-        // Validar nombre
-        if (etContactName.text.toString().trim().isEmpty()) {
-            tilContactName.error = "Por favor ingresa un nombre"
-            isValid = false
-        } else {
-            tilContactName.error = null
+        val isNameValid = validateName(contactName)
+        val isEmailValid = validateEmail(contactEmail)
+
+        return isNameValid && isEmailValid
+    }
+
+    private fun validateName(name: String): Boolean {
+        return when {
+            name.isEmpty() -> {
+                tilContactName.error = "El nombre es requerido"
+                tilContactName.isErrorEnabled = true
+                false
+            }
+            name.length < 2 -> {
+                tilContactName.error = "El nombre debe tener al menos 2 caracteres"
+                tilContactName.isErrorEnabled = true
+                false
+            }
+            !name.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
+                tilContactName.error = "El nombre solo debe contener letras"
+                tilContactName.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilContactName)
+                true
+            }
         }
+    }
 
-        // Validar correo electrónico
-        val email = etContactEmail.text.toString().trim()
-        if (email.isEmpty()) {
-            tilContactEmail.error = "Por favor ingresa un correo electrónico"
-            isValid = false
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            tilContactEmail.error = "Por favor ingresa un correo electrónico válido"
-            isValid = false
-        } else {
-            tilContactEmail.error = null
+    private fun validateEmail(email: String): Boolean {
+        return when {
+            email.isEmpty() -> {
+                tilContactEmail.error = "El correo electrónico es requerido"
+                tilContactEmail.isErrorEnabled = true
+                false
+            }
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                tilContactEmail.error = "Ingrese un correo electrónico válido"
+                tilContactEmail.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilContactEmail)
+                true
+            }
         }
+    }
 
-        return isValid
+    private fun clearError(field: TextInputLayout) {
+        field.error = null
+        field.isErrorEnabled = false
     }
 
     private fun saveEmergencyContact() {
@@ -90,7 +139,6 @@ class EmergencyContactPromptActivity : AppCompatActivity() {
         val contactName = etContactName.text.toString().trim()
         val contactEmail = etContactEmail.text.toString().trim()
 
-        // Generar un nuevo ID para el contacto
         val docRef = db.collection("contactos_apoyo").document()
         val contactData = hashMapOf(
             "id" to docRef.id,

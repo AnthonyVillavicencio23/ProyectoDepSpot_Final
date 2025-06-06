@@ -9,25 +9,26 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/white"
+        android:background="?attr/colorPrimary"
         android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Términos y condiciones de DepSpot"
-            android:textColor="@color/black"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+            android:text="Términos y condiciones"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:textColor="@android:color/white" />
 
     </com.google.android.material.appbar.MaterialToolbar>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:padding="16dp"
+        android:padding="24dp"
+        android:clipToPadding="false"
         app:layout_constraintBottom_toTopOf="@id/btnRegresar"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
@@ -38,7 +39,8 @@
             android:text="@string/terminos_y_condiciones"
             android:textSize="16sp"
             android:lineSpacingExtra="8dp"
-            android:textColor="@color/black" />
+            android:textColor="@color/black"
+            android:fontFamily="sans-serif-light" />
 
     </ScrollView>
 

@@ -5,11 +5,41 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        android:elevation="4dp"
+        android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Contacto de Emergencia"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:textColor="@android:color/white" />
+
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <ImageView
+        android:id="@+id/ivEmergencyIcon"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="32dp"
+        android:src="@drawable/ic_emergency"
+        android:contentDescription="Icono de emergencia"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/primary" />
+
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
+        android:layout_marginTop="24dp"
         android:text="¿Necesitas ayuda?"
         android:textColor="@color/primary"
         android:textSize="24sp"
@@ -18,7 +48,7 @@
         android:layout_marginHorizontal="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/ivEmergencyIcon" />
 
     <TextView
         android:id="@+id/tvDescription"
@@ -30,6 +60,7 @@
         android:textColor="@color/text_secondary"
         android:textSize="16sp"
         android:gravity="center"
+        android:lineSpacingExtra="4dp"
         app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
     <com.google.android.material.textfield.TextInputLayout
@@ -37,9 +68,11 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="32dp"
         android:hint="Nombre del contacto"
+        app:startIconDrawable="@drawable/ic_person"
+        app:startIconTint="@color/primary"
         app:layout_constraintTop_toBottomOf="@id/tvDescription">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -55,9 +88,11 @@
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
+        android:layout_marginHorizontal="24dp"
         android:layout_marginTop="16dp"
         android:hint="Correo electrónico"
+        app:startIconDrawable="@drawable/ic_email"
+        app:startIconTint="@color/primary"
         app:layout_constraintTop_toBottomOf="@id/tilContactName">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -68,27 +103,31 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAddContact"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
+        android:layout_marginHorizontal="24dp"
         android:layout_marginTop="32dp"
         android:padding="12dp"
-        android:text="Agregar contacto"
-        android:textSize="16sp"
+        android:text="Agregar contacto a la red de apoyo"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:cornerRadius="12dp"
         app:layout_constraintTop_toBottomOf="@id/tilContactEmail" />
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnSkip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
+        android:layout_marginHorizontal="24dp"
         android:layout_marginTop="16dp"
         android:padding="12dp"
         android:text="Omitir por ahora"
-        android:textSize="16sp"
+        android:textSize="18sp"
+        android:textStyle="bold"
         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        app:cornerRadius="12dp"
         app:layout_constraintTop_toBottomOf="@id/btnAddContact" />
 
 </androidx.constraintlayout.widget.ConstraintLayout> 
