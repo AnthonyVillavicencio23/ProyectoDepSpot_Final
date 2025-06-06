@@ -1,9 +1,16 @@
 package com.example.proyectodepspot
 
 import android.app.DatePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -43,8 +50,10 @@ class RegistroActivity : AppCompatActivity() {
         // Inicializar vistas
         initializeViews()
         setupDatePicker()
-        setupValidations()
+        setupTextChangeListeners()
         setupRegisterButton()
+        setupBackButton()
+        setupTerminosClick()
     }
 
     private fun initializeViews() {
@@ -66,6 +75,23 @@ class RegistroActivity : AppCompatActivity() {
         }
     }
 
+    private fun setupTextChangeListeners() {
+        val fields = listOf(
+            tilNombre, tilApellido, tilUsername, tilTelefono,
+            tilFechaNacimiento, tilEmail, tilPassword
+        )
+
+        fields.forEach { field ->
+            field.editText?.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    clearError(field)
+                }
+            })
+        }
+    }
+
     private fun showDatePicker() {
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
@@ -77,7 +103,13 @@ class RegistroActivity : AppCompatActivity() {
                 calendar.set(selectedYear, selectedMonth, selectedDay)
                 fechaNacimiento = calendar.time
                 updateFechaNacimientoDisplay()
-                calculateAge()
+                val age = calculateAge()
+                if (age in 13..18) {
+                    clearError(tilFechaNacimiento)
+                    updateEdadDisplay(age)
+                } else {
+                    validateFechaNacimiento()
+                }
             },
             year,
             month,
@@ -92,7 +124,7 @@ class RegistroActivity : AppCompatActivity() {
         )
     }
 
-    private fun calculateAge() {
+    private fun calculateAge(): Int {
         if (fechaNacimiento != null) {
             val today = Calendar.getInstance()
             val birthDate = Calendar.getInstance()
@@ -102,201 +134,44 @@ class RegistroActivity : AppCompatActivity() {
             if (today.get(Calendar.DAY_OF_YEAR) < birthDate.get(Calendar.DAY_OF_YEAR)) {
                 age--
             }
-            tvEdad.text = "Edad: $age años"
+            return age
         }
+        return 0
     }
 
-    private fun setupValidations() {
-        // Validación de nombre
-        tilNombre.editText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validateNombre(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        // Validación de apellido
-        tilApellido.editText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validateApellido(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        // Validación de username
-        tilUsername.editText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validateUsername(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        // Validación de teléfono
-        tilTelefono.editText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validateTelefono(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        // Validación de email
-        tilEmail.editText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validateEmail(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        // Validación de contraseña
-        tilPassword.editText?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                validatePassword(s.toString())
-            }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-    }
-
-    private fun validateNombre(nombre: String): Boolean {
-        return when {
-            nombre.isEmpty() -> {
-                tilNombre.error = "El nombre es requerido"
-                false
-            }
-            nombre.length < 2 -> {
-                tilNombre.error = "El nombre debe tener al menos 2 caracteres"
-                false
-            }
-            !nombre.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
-                tilNombre.error = "El nombre solo debe contener letras"
-                false
-            }
-            else -> {
-                tilNombre.error = null
-                true
-            }
-        }
-    }
-
-    private fun validateApellido(apellido: String): Boolean {
-        return when {
-            apellido.isEmpty() -> {
-                tilApellido.error = "El apellido es requerido"
-                false
-            }
-            apellido.length < 2 -> {
-                tilApellido.error = "El apellido debe tener al menos 2 caracteres"
-                false
-            }
-            !apellido.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
-                tilApellido.error = "El apellido solo debe contener letras"
-                false
-            }
-            else -> {
-                tilApellido.error = null
-                true
-            }
-        }
-    }
-
-    private fun validateUsername(username: String): Boolean {
-        return when {
-            username.isEmpty() -> {
-                tilUsername.error = "El nombre de usuario es requerido"
-                false
-            }
-            username.length < 4 -> {
-                tilUsername.error = "El nombre de usuario debe tener al menos 4 caracteres"
-                false
-            }
-            !username.matches(Regex("^[a-zA-Z0-9_]+$")) -> {
-                tilUsername.error = "El nombre de usuario solo puede contener letras, números y guiones bajos"
-                false
-            }
-            else -> {
-                tilUsername.error = null
-                true
-            }
-        }
-    }
-
-    private fun validateTelefono(telefono: String): Boolean {
-        return when {
-            telefono.isEmpty() -> {
-                tilTelefono.error = "El teléfono es requerido"
-                false
-            }
-            !telefono.matches(Regex("^[0-9]{9}$")) -> {
-                tilTelefono.error = "El teléfono debe tener 9 dígitos"
-                false
-            }
-            else -> {
-                tilTelefono.error = null
-                true
-            }
-        }
-    }
-
-    private fun validateEmail(email: String): Boolean {
-        return when {
-            email.isEmpty() -> {
-                tilEmail.error = "El correo electrónico es requerido"
-                false
-            }
-            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
-                tilEmail.error = "Ingrese un correo electrónico válido"
-                false
-            }
-            else -> {
-                tilEmail.error = null
-                true
-            }
-        }
-    }
-
-    private fun validatePassword(password: String): Boolean {
-        return when {
-            password.isEmpty() -> {
-                tilPassword.error = "La contraseña es requerida"
-                false
-            }
-            password.length < 8 -> {
-                tilPassword.error = "La contraseña debe tener al menos 8 caracteres"
-                false
-            }
-            !password.matches(Regex(".*[A-Z].*")) -> {
-                tilPassword.error = "La contraseña debe contener al menos una mayúscula"
-                false
-            }
-            !password.matches(Regex(".*[a-z].*")) -> {
-                tilPassword.error = "La contraseña debe contener al menos una minúscula"
-                false
-            }
-            !password.matches(Regex(".*[0-9].*")) -> {
-                tilPassword.error = "La contraseña debe contener al menos un número"
-                false
-            }
-            else -> {
-                tilPassword.error = null
-                true
-            }
-        }
+    private fun updateEdadDisplay(age: Int) {
+        tvEdad.text = "Edad: $age años"
     }
 
     private fun validateFechaNacimiento(): Boolean {
         return when {
             fechaNacimiento == null -> {
                 tilFechaNacimiento.error = "La fecha de nacimiento es requerida"
+                tilFechaNacimiento.isErrorEnabled = true
+                tvEdad.text = "Edad: --"
                 false
             }
             else -> {
-                tilFechaNacimiento.error = null
-                true
+                val age = calculateAge()
+                when {
+                    age < 13 -> {
+                        tilFechaNacimiento.error = "Debes tener al menos 13 años"
+                        tilFechaNacimiento.isErrorEnabled = true
+                        tvEdad.text = "Edad: --"
+                        false
+                    }
+                    age > 18 -> {
+                        tilFechaNacimiento.error = "Debes tener máximo 18 años"
+                        tilFechaNacimiento.isErrorEnabled = true
+                        tvEdad.text = "Edad: --"
+                        false
+                    }
+                    else -> {
+                        clearError(tilFechaNacimiento)
+                        updateEdadDisplay(age)
+                        true
+                    }
+                }
             }
         }
     }
@@ -377,5 +252,191 @@ class RegistroActivity : AppCompatActivity() {
 
         return isNombreValid && isApellidoValid && isUsernameValid && isTelefonoValid &&
                 isFechaNacimientoValid && isEmailValid && isPasswordValid && isConsentimientoValid
+    }
+
+    private fun setupBackButton() {
+        findViewById<MaterialButton>(R.id.buttonBack).setOnClickListener {
+            onBackPressed()
+        }
+    }
+
+    private fun clearError(field: TextInputLayout) {
+        field.error = null
+        field.isErrorEnabled = false
+    }
+
+    private fun validateNombre(nombre: String): Boolean {
+        return when {
+            nombre.isEmpty() -> {
+                tilNombre.error = "El nombre es requerido"
+                tilNombre.isErrorEnabled = true
+                false
+            }
+            nombre.length < 2 -> {
+                tilNombre.error = "El nombre debe tener al menos 2 caracteres"
+                tilNombre.isErrorEnabled = true
+                false
+            }
+            !nombre.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
+                tilNombre.error = "El nombre solo debe contener letras"
+                tilNombre.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilNombre)
+                true
+            }
+        }
+    }
+
+    private fun validateApellido(apellido: String): Boolean {
+        return when {
+            apellido.isEmpty() -> {
+                tilApellido.error = "El apellido es requerido"
+                tilApellido.isErrorEnabled = true
+                false
+            }
+            apellido.length < 2 -> {
+                tilApellido.error = "El apellido debe tener al menos 2 caracteres"
+                tilApellido.isErrorEnabled = true
+                false
+            }
+            !apellido.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
+                tilApellido.error = "El apellido solo debe contener letras"
+                tilApellido.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilApellido)
+                true
+            }
+        }
+    }
+
+    private fun validateUsername(username: String): Boolean {
+        return when {
+            username.isEmpty() -> {
+                tilUsername.error = "El nombre de usuario es requerido"
+                tilUsername.isErrorEnabled = true
+                false
+            }
+            username.length < 4 -> {
+                tilUsername.error = "El nombre de usuario debe tener al menos 4 caracteres"
+                tilUsername.isErrorEnabled = true
+                false
+            }
+            !username.matches(Regex("^[a-zA-Z0-9_]+$")) -> {
+                tilUsername.error = "El nombre de usuario solo puede contener letras, números y guiones bajos"
+                tilUsername.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilUsername)
+                true
+            }
+        }
+    }
+
+    private fun validateTelefono(telefono: String): Boolean {
+        return when {
+            telefono.isEmpty() -> {
+                tilTelefono.error = "El teléfono es requerido"
+                tilTelefono.isErrorEnabled = true
+                false
+            }
+            !telefono.matches(Regex("^[0-9]{9}$")) -> {
+                tilTelefono.error = "El teléfono debe tener 9 dígitos"
+                tilTelefono.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilTelefono)
+                true
+            }
+        }
+    }
+
+    private fun validateEmail(email: String): Boolean {
+        return when {
+            email.isEmpty() -> {
+                tilEmail.error = "El correo electrónico es requerido"
+                tilEmail.isErrorEnabled = true
+                false
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                tilEmail.error = "Ingrese un correo electrónico válido"
+                tilEmail.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilEmail)
+                true
+            }
+        }
+    }
+
+    private fun validatePassword(password: String): Boolean {
+        return when {
+            password.isEmpty() -> {
+                tilPassword.error = "La contraseña es requerida"
+                tilPassword.isErrorEnabled = true
+                false
+            }
+            password.length < 8 -> {
+                tilPassword.error = "La contraseña debe tener al menos 8 caracteres"
+                tilPassword.isErrorEnabled = true
+                false
+            }
+            !password.matches(Regex(".*[A-Z].*")) -> {
+                tilPassword.error = "La contraseña debe contener al menos una mayúscula"
+                tilPassword.isErrorEnabled = true
+                false
+            }
+            !password.matches(Regex(".*[a-z].*")) -> {
+                tilPassword.error = "La contraseña debe contener al menos una minúscula"
+                tilPassword.isErrorEnabled = true
+                false
+            }
+            !password.matches(Regex(".*[0-9].*")) -> {
+                tilPassword.error = "La contraseña debe contener al menos un número"
+                tilPassword.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilPassword)
+                true
+            }
+        }
+    }
+
+    private fun setupTerminosClick() {
+        val checkBox = findViewById<MaterialCheckBox>(R.id.cbConsentimiento)
+        val text = "Acepto los términos y condiciones"
+        val spannableString = SpannableString(text)
+        
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                startActivity(Intent(this@RegistroActivity, TerminosActivity::class.java))
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = true
+                ds.color = getColor(R.color.purple_500)
+            }
+        }
+
+        val startIndex = text.indexOf("términos y condiciones")
+        if (startIndex != -1) {
+            spannableString.setSpan(
+                clickableSpan,
+                startIndex,
+                startIndex + "términos y condiciones".length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        checkBox.text = spannableString
+        checkBox.movementMethod = LinkMovementMethod.getInstance()
     }
 } 

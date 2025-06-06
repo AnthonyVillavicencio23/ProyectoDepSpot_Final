@@ -1,4 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Chat DepSpot</string>
+    
+    <!-- Splash Screen Messages -->
+    <string-array name="splash_messages">
+        <item>Respira hondo. Estás en un lugar seguro</item>
+        <item>Cada día es una nueva oportunidad</item>
+        <item>No estás solo en este camino</item>
+        <item>Tu bienestar es importante</item>
+        <item>Juntos podemos superar esto</item>
+        <item>Tu voz importa</item>
+        <item>Estamos aquí para escucharte</item>
+        <item>Cada paso cuenta</item>
+    </string-array>
+
+    <string name="terminos_y_condiciones">1. Aceptación de los Términos\n\n
+Al utilizar DepSpot, aceptas estos términos y condiciones. Si no estás de acuerdo con alguna parte de estos términos, no podrás acceder a la aplicación.\n\n
+
+2. Uso de la Aplicación\n\n
+• Debes tener al menos 18 años para usar DepSpot.\n
+• Eres responsable de mantener la confidencialidad de tu cuenta.\n
+• No debes compartir tu información de acceso con terceros.\n
+• Debes proporcionar información precisa y actualizada.\n\n
+
+3. Privacidad y Seguridad\n\n
+• Nos comprometemos a proteger tu privacidad.\n
+• Toda la información personal se maneja según nuestra Política de Privacidad.\n
+• Implementamos medidas de seguridad para proteger tus datos.\n\n
+
+4. Conducta del Usuario\n\n
+• No debes usar la aplicación para fines ilegales.\n
+• No debes intentar acceder a cuentas de otros usuarios.\n
+• No debes publicar contenido ofensivo o inapropiado.\n
+• Debes respetar a otros usuarios y sus derechos.\n\n
+
+5. Modificaciones\n\n
+• Nos reservamos el derecho de modificar estos términos en cualquier momento.\n
+• Los cambios entrarán en vigor al publicarlos en la aplicación.\n
+• El uso continuado de la aplicación después de los cambios implica aceptación de los nuevos términos.\n\n
+
+6. Limitación de Responsabilidad\n\n
+• DepSpot se proporciona \"tal cual\" sin garantías.\n
+• No somos responsables por daños indirectos o consecuentes.\n
+• No garantizamos la disponibilidad ininterrumpida de la aplicación.\n\n
+
+7. Contacto\n\n
+Para preguntas sobre estos términos, contáctanos a:\n
+Email: soporte@depspot.com\n
+Teléfono: +34 900 123 456</string>
 </resources>

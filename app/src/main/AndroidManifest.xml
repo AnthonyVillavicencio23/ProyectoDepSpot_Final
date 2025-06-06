@@ -86,6 +86,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".TerminosActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".BitacoraEmocionalActivity"
             android:exported="false"
             android:theme="@style/Theme.ProyectoDepSpot" />

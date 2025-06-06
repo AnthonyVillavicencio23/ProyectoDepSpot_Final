@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Colores principales -->
-    <color name="colorPrimary">#2196F3</color>
-    <color name="colorPrimaryDark">#1976D2</color>
-    <color name="colorAccent">#03A9F4</color>
+    <color name="colorPrimary">#9f86c0</color>
+    <color name="colorPrimaryDark">#7B5B9E</color>
+    <color name="colorAccent">#9f86c0</color>
     
     <!-- Nombres alternativos para compatibilidad -->
     <color name="primary">@color/colorPrimary</color>
@@ -16,6 +16,10 @@
     <color name="gray">#757575</color>
     <color name="light_gray">#EEEEEE</color>
     
+    <!-- Color de fondo -->
+    <color name="background">#fff4e9</color>
+    <color name="background_cream">@color/background</color>
+    
     <!-- Colores para mensajes -->
     <color name="message_background">#F5F9FC</color>
     <color name="message_background_own">#E8F4F1</color>
@@ -23,12 +27,12 @@
     <color name="timestamp_text">#95A5A6</color>
     
     <!-- Colores de la interfaz -->
-    <color name="background">#FFFFFF</color>
     <color name="input_background">#F8F9FA</color>
     <color name="hint_text">#95A5A6</color>
     <color name="text_primary">#FF000000</color>
     <color name="text_secondary">#757575</color>
     <color name="error">#B00020</color>
+    <color name="button_background">#fae4dc</color>
     
     <!-- Colores del sistema -->
     <color name="purple_200">#FFBB86FC</color>

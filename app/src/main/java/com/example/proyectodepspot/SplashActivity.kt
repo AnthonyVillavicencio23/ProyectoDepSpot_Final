@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.animation.AnimationUtils
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.imageview.ShapeableImageView
 import com.google.firebase.auth.FirebaseAuth
 
 class SplashActivity : AppCompatActivity() {
@@ -20,7 +23,17 @@ class SplashActivity : AppCompatActivity() {
         // Inicializar Firebase Auth
         auth = FirebaseAuth.getInstance()
 
-        // Mostrar el splash por 2 segundos y luego verificar autenticación
+        // Iniciar animación del logo
+        val logo = findViewById<ShapeableImageView>(R.id.ivLogo)
+        val logoAnimation = AnimationUtils.loadAnimation(this, R.anim.logo_animation)
+        logo.startAnimation(logoAnimation)
+
+        // Seleccionar mensaje aleatorio
+        val messages = resources.getStringArray(R.array.splash_messages)
+        val randomMessage = messages.random()
+        findViewById<TextView>(R.id.tvMessage).text = randomMessage
+
+        // Mostrar el splash por 4 segundos y luego verificar autenticación
         Handler(Looper.getMainLooper()).postDelayed({
             if (auth.currentUser != null) {
                 // Usuario autenticado, ir al chat
@@ -30,6 +43,6 @@ class SplashActivity : AppCompatActivity() {
                 startActivity(Intent(this, WelcomeActivity::class.java))
             }
             finish()
-        }, 2000)
+        }, 4000)
     }
 } 
