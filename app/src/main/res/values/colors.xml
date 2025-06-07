@@ -64,4 +64,5 @@
     <color name="chat_send_button_icon">#FFFFFF</color>
     <color name="chat_send_button_icon_disabled">#FFFFFF</color>
     <color name="chat_divider">#EEEEEE</color>
+    <color name="red">#FF0000</color>
 </resources>

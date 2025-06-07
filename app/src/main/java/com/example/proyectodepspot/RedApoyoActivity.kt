@@ -1,7 +1,11 @@
 package com.example.proyectodepspot
 
 import android.app.Dialog
+import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
+import android.view.ViewGroup
+import android.widget.PopupWindow
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -10,14 +14,19 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.proyectodepspot.data.ContactoApoyo
 import com.example.proyectodepspot.data.ContactosRepository
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.button.MaterialButton
+import android.view.View
+import android.widget.TextView
 import kotlinx.coroutines.launch
+import android.widget.ImageButton
 
 class RedApoyoActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: ContactosAdapter
     private val contactos = mutableListOf<ContactoApoyo>()
+    private lateinit var currentPopupWindow: PopupWindow
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +43,7 @@ class RedApoyoActivity : AppCompatActivity() {
         }
 
         recyclerView = findViewById(R.id.recyclerViewContactos)
-        val fabAgregarContacto = findViewById<FloatingActionButton>(R.id.fabAgregarContacto)
+        val fabAgregarContacto = findViewById<ExtendedFloatingActionButton>(R.id.fabAgregarContacto)
 
         adapter = ContactosAdapter(contactos) { contacto ->
             mostrarDialogoEditarContacto(contacto)
@@ -68,61 +77,177 @@ class RedApoyoActivity : AppCompatActivity() {
     }
 
     private fun mostrarDialogoAgregarContacto() {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_agregar_contacto, null)
-        val editTextNombre = dialogView.findViewById<TextInputEditText>(R.id.editTextNombre)
-        val editTextCorreo = dialogView.findViewById<TextInputEditText>(R.id.editTextCorreo)
+        val popupView = layoutInflater.inflate(R.layout.dialog_agregar_contacto, null)
+        
+        // Calcular el ancho del diálogo (90% del ancho de la pantalla)
+        val displayMetrics = resources.displayMetrics
+        val width = (displayMetrics.widthPixels * 0.9).toInt()
+        
+        val popupWindow = PopupWindow(
+            popupView,
+            width,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
 
-        AlertDialog.Builder(this)
-            .setTitle("Agregar Contacto de Apoyo")
-            .setView(dialogView)
-            .setPositiveButton("Guardar") { _, _ ->
-                val nombre = editTextNombre.text.toString()
-                val correo = editTextCorreo.text.toString()
+        // Configurar título
+        popupView.findViewById<TextView>(R.id.titleTextView).text = "Agregar Contacto"
 
-                if (nombre.isNotBlank() && correo.isNotBlank()) {
-                    val nuevoContacto = ContactoApoyo(
-                        nombre = nombre,
-                        correo = correo
-                    )
-                    guardarContacto(nuevoContacto)
-                } else {
-                    Toast.makeText(this, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
+        // Ocultar botón de eliminar
+        popupView.findViewById<ImageButton>(R.id.buttonEliminar).visibility = View.GONE
+
+        // Configurar campos
+        val editTextNombre = popupView.findViewById<TextInputEditText>(R.id.editTextNombre)
+        val editTextCorreo = popupView.findViewById<TextInputEditText>(R.id.editTextCorreo)
+
+        // Configurar botones
+        popupView.findViewById<MaterialButton>(R.id.buttonCancelar).setOnClickListener {
+            popupWindow.dismiss()
+        }
+
+        popupView.findViewById<MaterialButton>(R.id.buttonGuardar).setOnClickListener {
+            val nombre = editTextNombre.text.toString().trim()
+            val correo = editTextCorreo.text.toString().trim()
+
+            if (nombre.isNotEmpty() && correo.isNotEmpty()) {
+                lifecycleScope.launch {
+                    val contacto = ContactoApoyo(nombre = nombre, correo = correo)
+                    guardarContacto(contacto)
+                    popupWindow.dismiss()
                 }
+            } else {
+                Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Cancelar", null)
-            .show()
+        }
+
+        // Crear un fondo oscuro
+        val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
+        val darkOverlay = View(this).apply {
+            setBackgroundColor(Color.BLACK)
+            alpha = 0f // Comenzar transparente
+        }
+        rootView.addView(darkOverlay, ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+
+        // Animar la aparición del fondo oscuro
+        darkOverlay.animate()
+            .alpha(0.5f)
+            .setDuration(200)
+            .start()
+
+        // Agregar fondo oscuro
+        popupWindow.setOnDismissListener {
+            // Animar el desvanecimiento del fondo oscuro
+            darkOverlay.animate()
+                .alpha(0f)
+                .setDuration(200)
+                .withEndAction {
+                    rootView.removeView(darkOverlay)
+                }
+                .start()
+        }
+
+        // Mostrar popup
+        popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0)
+        currentPopupWindow = popupWindow
+
+        // Asegurarnos de que el popup tenga el estilo correcto
+        popupWindow.setBackgroundDrawable(resources.getDrawable(android.R.color.transparent, theme))
+        popupWindow.elevation = 8f
     }
 
     private fun mostrarDialogoEditarContacto(contacto: ContactoApoyo) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_agregar_contacto, null)
-        val editTextNombre = dialogView.findViewById<TextInputEditText>(R.id.editTextNombre)
-        val editTextCorreo = dialogView.findViewById<TextInputEditText>(R.id.editTextCorreo)
+        val popupView = layoutInflater.inflate(R.layout.dialog_agregar_contacto, null)
+        
+        // Calcular el ancho del diálogo (90% del ancho de la pantalla)
+        val displayMetrics = resources.displayMetrics
+        val width = (displayMetrics.widthPixels * 0.9).toInt()
+        
+        val popupWindow = PopupWindow(
+            popupView,
+            width,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
 
+        // Configurar título
+        popupView.findViewById<TextView>(R.id.titleTextView).text = "Editar Contacto"
+
+        // Mostrar y configurar botón de eliminar
+        val buttonEliminar = popupView.findViewById<ImageButton>(R.id.buttonEliminar)
+        buttonEliminar.visibility = View.VISIBLE
+        buttonEliminar.setOnClickListener {
+            lifecycleScope.launch {
+                eliminarContacto(contacto)
+                popupWindow.dismiss()
+            }
+        }
+
+        // Configurar campos
+        val editTextNombre = popupView.findViewById<TextInputEditText>(R.id.editTextNombre)
+        val editTextCorreo = popupView.findViewById<TextInputEditText>(R.id.editTextCorreo)
+        
         editTextNombre.setText(contacto.nombre)
         editTextCorreo.setText(contacto.correo)
 
-        AlertDialog.Builder(this)
-            .setTitle("Editar Contacto")
-            .setView(dialogView)
-            .setPositiveButton("Guardar") { _, _ ->
-                val nombre = editTextNombre.text.toString()
-                val correo = editTextCorreo.text.toString()
+        // Configurar botones
+        popupView.findViewById<MaterialButton>(R.id.buttonCancelar).setOnClickListener {
+            popupWindow.dismiss()
+        }
 
-                if (nombre.isNotBlank() && correo.isNotBlank()) {
-                    val contactoActualizado = contacto.copy(
-                        nombre = nombre,
-                        correo = correo
-                    )
+        popupView.findViewById<MaterialButton>(R.id.buttonGuardar).setOnClickListener {
+            val nombre = editTextNombre.text.toString().trim()
+            val correo = editTextCorreo.text.toString().trim()
+
+            if (nombre.isNotEmpty() && correo.isNotEmpty()) {
+                lifecycleScope.launch {
+                    val contactoActualizado = contacto.copy(nombre = nombre, correo = correo)
                     guardarContacto(contactoActualizado)
-                } else {
-                    Toast.makeText(this, "Por favor completa todos los campos", Toast.LENGTH_SHORT).show()
+                    popupWindow.dismiss()
                 }
+            } else {
+                Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
             }
-            .setNegativeButton("Cancelar", null)
-            .setNeutralButton("Eliminar") { _, _ ->
-                eliminarContacto(contacto)
-            }
-            .show()
+        }
+
+        // Crear un fondo oscuro
+        val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
+        val darkOverlay = View(this).apply {
+            setBackgroundColor(Color.BLACK)
+            alpha = 0f // Comenzar transparente
+        }
+        rootView.addView(darkOverlay, ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        ))
+
+        // Animar la aparición del fondo oscuro
+        darkOverlay.animate()
+            .alpha(0.5f)
+            .setDuration(200)
+            .start()
+
+        // Agregar fondo oscuro
+        popupWindow.setOnDismissListener {
+            // Animar el desvanecimiento del fondo oscuro
+            darkOverlay.animate()
+                .alpha(0f)
+                .setDuration(200)
+                .withEndAction {
+                    rootView.removeView(darkOverlay)
+                }
+                .start()
+        }
+
+        // Mostrar popup
+        popupWindow.showAtLocation(rootView, Gravity.CENTER, 0, 0)
+        currentPopupWindow = popupWindow
+
+        // Asegurarnos de que el popup tenga el estilo correcto
+        popupWindow.setBackgroundDrawable(resources.getDrawable(android.R.color.transparent, theme))
+        popupWindow.elevation = 8f
     }
 
     private fun guardarContacto(contacto: ContactoApoyo) {

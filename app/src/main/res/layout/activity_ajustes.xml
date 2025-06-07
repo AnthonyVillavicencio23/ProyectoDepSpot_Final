@@ -53,23 +53,23 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvNombreCompleto"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/white"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:text="Cargando..." />
+            <TextView
+                android:id="@+id/tvNombreCompleto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:text="Cargando..." />
 
-                <TextView
-                    android:id="@+id/tvApodo"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    android:layout_marginTop="4dp"
-                    android:text="Cargando..." />
+            <TextView
+                android:id="@+id/tvApodo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:layout_marginTop="4dp"
+                android:text="Cargando..." />
 
             </LinearLayout>
         </LinearLayout>
