@@ -110,10 +110,22 @@
 
                         <Button
                             android:id="@+id/btnCompletado"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:text="Completado"
-                            android:layout_marginStart="8dp"/>
+                            android:layout_marginEnd="8dp"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnResumenDesafios"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Ver Resumen"
+                            android:textColor="@color/colorPrimary"
+                            app:strokeColor="@color/colorPrimary"
+                            app:cornerRadius="12dp" />
 
                     </LinearLayout>
                 </LinearLayout>
@@ -199,48 +211,26 @@
 
                         <Button
                             android:id="@+id/btnCompletadoIA"
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
                             android:text="Completado"
-                            android:enabled="false"
-                            android:layout_marginStart="8dp"/>
+                            android:enabled="false"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnResumenDesafiosIA"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Ver Resumen"
+                            android:textColor="@color/colorPrimary"
+                            app:strokeColor="@color/colorPrimary"
+                            app:cornerRadius="12dp" />
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-
-            <!-- Botones de Resumen -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp"
-                android:gravity="center"
-                app:layout_constraintTop_toBottomOf="@id/cardRetoIA"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <Button
-                    android:id="@+id/btnResumenDesafios"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
-                    android:text="Resumen Desafíos Diarios"
-                    android:textColor="@color/white"
-                    android:background="@drawable/button_background" />
-
-                <Button
-                    android:id="@+id/btnResumenDesafiosIA"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:text="Resumen Desafíos Personalizados"
-                    android:textColor="@color/white"
-                    android:background="@drawable/button_background" />
-
-            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>

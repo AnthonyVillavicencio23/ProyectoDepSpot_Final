@@ -1,10 +1,13 @@
 package com.example.proyectodepspot
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.CoroutineScope
@@ -23,6 +26,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private lateinit var textViewResumen: TextView
     private lateinit var textViewTitulo: TextView
+    private lateinit var progressBar: ProgressBar
     private var esDesafioIA: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,12 +37,18 @@ class ResumenDesafiosActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         textViewResumen = findViewById(R.id.textViewResumen)
         textViewTitulo = findViewById(R.id.textViewTitulo)
+        progressBar = findViewById(R.id.progressBar)
 
         esDesafioIA = intent.getBooleanExtra("es_desafio_ia", false)
         textViewTitulo.text = if (esDesafioIA) "Resumen de Desafíos Personalizados" else "Resumen de Desafíos Diarios"
 
+        // Configurar la barra superior
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
         setupBottomNavigation()
-        setupRegresarButton()
         cargarResumenSemana()
     }
 
@@ -216,6 +226,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                             val resumenTexto = resumen["resumen"] as? String ?: ""
                             withContext(Dispatchers.Main) {
                                 textViewResumen.text = resumenTexto
+                                progressBar.visibility = View.GONE
                             }
                             return@launch
                         }
@@ -223,6 +234,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
 
                     withContext(Dispatchers.Main) {
                         textViewResumen.text = "No hay pares de desafíos que hayan completado su fecha límite. Por favor, espera hasta que un par de desafíos haya expirado para ver el resumen."
+                        progressBar.visibility = View.GONE
                     }
                     return@launch
                 }
@@ -250,12 +262,14 @@ class ResumenDesafiosActivity : AppCompatActivity() {
 
                 withContext(Dispatchers.Main) {
                     textViewResumen.text = resumen
+                    progressBar.visibility = View.GONE
                     android.util.Log.d("ResumenDesafios", "Texto asignado al TextView")
                 }
             } catch (e: Exception) {
                 android.util.Log.e("ResumenDesafios", "Error en cargarResumenSemana: ${e.message}", e)
                 withContext(Dispatchers.Main) {
                     textViewResumen.text = "Error al cargar el resumen: ${e.message}"
+                    progressBar.visibility = View.GONE
                 }
             }
         }
@@ -362,9 +376,8 @@ class ResumenDesafiosActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupRegresarButton() {
-        findViewById<Button>(R.id.btnRegresar).setOnClickListener {
-            finish()
-        }
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 } 

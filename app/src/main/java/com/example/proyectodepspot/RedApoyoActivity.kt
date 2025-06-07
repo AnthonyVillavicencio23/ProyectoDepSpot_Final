@@ -115,10 +115,10 @@ class RedApoyoActivity : AppCompatActivity() {
                     guardarContacto(contacto)
                     popupWindow.dismiss()
                 }
-            } else {
+                } else {
                 Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
 
         // Crear un fondo oscuro
         val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
@@ -188,7 +188,7 @@ class RedApoyoActivity : AppCompatActivity() {
         // Configurar campos
         val editTextNombre = popupView.findViewById<TextInputEditText>(R.id.editTextNombre)
         val editTextCorreo = popupView.findViewById<TextInputEditText>(R.id.editTextCorreo)
-        
+
         editTextNombre.setText(contacto.nombre)
         editTextCorreo.setText(contacto.correo)
 
@@ -207,10 +207,10 @@ class RedApoyoActivity : AppCompatActivity() {
                     guardarContacto(contactoActualizado)
                     popupWindow.dismiss()
                 }
-            } else {
+                } else {
                 Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
 
         // Crear un fondo oscuro
         val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
