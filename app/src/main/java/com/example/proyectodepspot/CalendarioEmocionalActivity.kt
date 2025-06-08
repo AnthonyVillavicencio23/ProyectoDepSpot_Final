@@ -23,6 +23,8 @@ import java.util.Locale
 import java.util.TimeZone
 import com.google.android.material.appbar.MaterialToolbar
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.view.ViewOutlineProvider
 
 class CalendarioEmocionalActivity : AppCompatActivity() {
     private lateinit var gridEmociones: GridLayout
@@ -90,10 +92,33 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
 
     private fun setupGridEmocionesSeleccionables() {
         emociones.forEach { (emocion, imagenResId) ->
+            // Crear un contenedor vertical para la imagen y el texto
+            val container = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+            }
+
+            // Crear el texto de la emoción
+            val textView = TextView(this).apply {
+                text = emocion.capitalize()
+                textSize = 14f
+                setTextColor(resources.getColor(R.color.colorPrimary, theme))
+                gravity = Gravity.CENTER
+                alpha = 1.0f
+                setPadding(0, 0, 0, 8)
+            }
+
+            // Crear la imagen con fondo circular
             val imageView = ImageView(this).apply {
                 setImageResource(imagenResId)
                 scaleType = ImageView.ScaleType.FIT_CENTER
-                setPadding(16, 16, 16, 16)
+                adjustViewBounds = true
+                maxHeight = resources.getDimensionPixelSize(R.dimen.emotion_image_size)
+                maxWidth = resources.getDimensionPixelSize(R.dimen.emotion_image_size)
+                setPadding(2, 2, 2, 2)
+                background = getDrawable(R.drawable.bg_emotion_circle)
+                clipToOutline = true
+                outlineProvider = ViewOutlineProvider.BACKGROUND
                 isClickable = true
                 isFocusable = true
                 setOnClickListener {
@@ -103,14 +128,18 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
                 }
             }
 
+            // Agregar la imagen y el texto al contenedor
+            container.addView(textView)
+            container.addView(imageView)
+
             val params = GridLayout.LayoutParams().apply {
                 width = 0
-                height = 280 // Altura fija en dp
+                height = GridLayout.LayoutParams.WRAP_CONTENT
                 columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
                 setMargins(8, 8, 8, 8)
             }
 
-            gridEmocionesSeleccionables.addView(imageView, params)
+            gridEmocionesSeleccionables.addView(container, params)
         }
     }
 
@@ -191,27 +220,44 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
 
         // Agregar las imágenes al grid
         for (i in 1..7) {
+            // Crear un contenedor para la imagen
+            val container = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+                setPadding(4, 4, 4, 4)
+            }
+
+            // Crear la imagen
             val imageView = ImageView(this).apply {
                 setImageResource(emojiNeutral)
-                scaleType = ImageView.ScaleType.FIT_CENTER
-                setPadding(8, 8, 8, 8)
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                adjustViewBounds = true
+                maxHeight = resources.getDimensionPixelSize(R.dimen.emotion_image_size)
+                maxWidth = resources.getDimensionPixelSize(R.dimen.emotion_image_size)
+                setPadding(2, 2, 2, 2)
+                background = getDrawable(R.drawable.bg_emotion_circle)
+                clipToOutline = true
+                outlineProvider = ViewOutlineProvider.BACKGROUND
                 alpha = 1.0f
                 isEnabled = true
             }
 
+            // Agregar la imagen al contenedor
+            container.addView(imageView)
+
             // Solo agregar el fondo si estamos en la semana actual y es el día actual
             if (esSemanaActual && i == diaSemanaActual) {
-                imageView.setBackgroundResource(R.drawable.bg_dia_actual)
+                container.setBackgroundResource(R.drawable.bg_dia_actual)
             }
 
             val params = GridLayout.LayoutParams().apply {
                 width = 0
-                height = 140 // Altura fija en dp
+                height = GridLayout.LayoutParams.WRAP_CONTENT
                 columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
                 setMargins(8, 8, 8, 8)
             }
 
-            gridEmociones.addView(imageView, params)
+            gridEmociones.addView(container, params)
         }
     }
 
@@ -224,21 +270,29 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
             textoSeleccionEmocion.text = "¿Cómo te sientes en este momento?"
             textoSeleccionEmocion.alpha = 1.0f
             gridEmocionesSeleccionables.alpha = 1.0f
-            // Habilitar todos los emojis
+            // Habilitar todos los contenedores
             for (i in 0 until gridEmocionesSeleccionables.childCount) {
-                val child = gridEmocionesSeleccionables.getChildAt(i) as ImageView
-                child.isEnabled = true
-                child.alpha = 1.0f
+                val container = gridEmocionesSeleccionables.getChildAt(i) as LinearLayout
+                container.isEnabled = true
+                container.alpha = 1.0f
+                // Habilitar la imagen dentro del contenedor
+                val imageView = container.getChildAt(1) as ImageView
+                imageView.isEnabled = true
+                imageView.alpha = 1.0f
             }
         } else {
             textoSeleccionEmocion.text = "Navega a la semana actual para seleccionar una emoción"
             textoSeleccionEmocion.alpha = 0.7f
             gridEmocionesSeleccionables.alpha = 1.0f
-            // Deshabilitar todos los emojis
+            // Deshabilitar todos los contenedores
             for (i in 0 until gridEmocionesSeleccionables.childCount) {
-                val child = gridEmocionesSeleccionables.getChildAt(i) as ImageView
-                child.isEnabled = false
-                child.alpha = 0.5f
+                val container = gridEmocionesSeleccionables.getChildAt(i) as LinearLayout
+                container.isEnabled = false
+                container.alpha = 0.5f
+                // Deshabilitar la imagen dentro del contenedor
+                val imageView = container.getChildAt(1) as ImageView
+                imageView.isEnabled = false
+                imageView.alpha = 0.5f
             }
         }
     }
@@ -331,7 +385,8 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
                 setTextColor(resources.getColor(R.color.colorPrimary, theme))
                 setOnClickListener {
                     // Actualizar la imagen en el grid inmediatamente
-                    val imageView = gridEmociones.getChildAt(diaSemanaActual + 13) as ImageView
+                    val container = gridEmociones.getChildAt(diaSemanaActual + 13) as LinearLayout
+                    val imageView = container.getChildAt(0) as ImageView
                     imageView.setImageResource(emociones[emocion] ?: emojiNeutral)
                     // Mostrar diálogo de confirmación inmediatamente
                     mostrarDialogoConfirmacion(emocion, emocionEspecifica, contexto, userId, fecha)
@@ -456,20 +511,24 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
                     if (document.exists()) {
                         val emocion = document.getString("emocion")
                         if (emocion != null) {
-                            val imageView = gridEmociones.getChildAt(i + 14) as ImageView
+                            val container = gridEmociones.getChildAt(i + 14) as LinearLayout
+                            val imageView = container.getChildAt(0) as ImageView
                             imageView.apply {
                                 setImageResource(emociones[emocion] ?: emojiNeutral)
-                                scaleType = ImageView.ScaleType.FIT_CENTER
+                                scaleType = ImageView.ScaleType.CENTER_CROP
+                                adjustViewBounds = true
                                 alpha = 1.0f
                                 isEnabled = true
                             }
                         }
                     } else {
                         // Si no existe documento para esta fecha, mostrar imagen neutra
-                        val imageView = gridEmociones.getChildAt(i + 14) as ImageView
+                        val container = gridEmociones.getChildAt(i + 14) as LinearLayout
+                        val imageView = container.getChildAt(0) as ImageView
                         imageView.apply {
                             setImageResource(emojiNeutral)
-                            scaleType = ImageView.ScaleType.FIT_CENTER
+                            scaleType = ImageView.ScaleType.CENTER_CROP
+                            adjustViewBounds = true
                             alpha = 1.0f
                             isEnabled = true
                         }
