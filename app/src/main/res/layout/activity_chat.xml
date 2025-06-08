@@ -20,18 +20,6 @@
             android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
             android:textColor="@android:color/white" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonLogout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginEnd="16dp"
-            android:text="Cerrar Sesión"
-            android:textColor="@android:color/white"
-            app:icon="@drawable/ic_logout"
-            app:iconTint="@android:color/white"
-            style="@style/Widget.MaterialComponents.Button.TextButton" />
-
     </com.google.android.material.appbar.MaterialToolbar>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -48,7 +36,7 @@
         android:id="@+id/messageInputContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/white"
+        android:background="@color/colorPrimary"
         android:elevation="4dp"
         android:orientation="horizontal"
         android:padding="8dp"
@@ -59,9 +47,10 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="bottom"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/chat_button_background"
             android:src="@drawable/ic_mic"
-            android:tint="@color/design_default_color_primary" />
+            android:tint="@color/colorPrimary"
+            android:padding="12dp" />
 
         <EditText
             android:id="@+id/messageInput"
@@ -73,16 +62,19 @@
             android:inputType="textMultiLine"
             android:maxLines="4"
             android:padding="12dp"
-            android:layout_marginHorizontal="8dp" />
+            android:layout_marginHorizontal="8dp"
+            android:textColorHint="#757575"
+            android:textColor="#212121" />
 
         <ImageButton
             android:id="@+id/sendButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_gravity="bottom"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:background="@drawable/chat_button_background"
             android:src="@drawable/ic_send"
-            android:tint="@color/design_default_color_primary" />
+            android:tint="@color/colorPrimary"
+            android:padding="12dp" />
 
     </LinearLayout>
 

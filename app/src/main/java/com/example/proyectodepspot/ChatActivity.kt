@@ -70,13 +70,6 @@ class ChatActivity : AppCompatActivity() {
             return
         }
 
-        // Configurar el botón de cerrar sesión en la barra superior
-        findViewById<MaterialButton>(R.id.buttonLogout).setOnClickListener {
-            auth.signOut()
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
-        }
-
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavigation.selectedItemId = R.id.nav_chat
 

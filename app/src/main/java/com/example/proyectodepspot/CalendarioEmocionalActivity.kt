@@ -22,6 +22,7 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 import com.google.android.material.appbar.MaterialToolbar
+import android.widget.ImageView
 
 class CalendarioEmocionalActivity : AppCompatActivity() {
     private lateinit var gridEmociones: GridLayout
@@ -33,13 +34,13 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
     private lateinit var textoRangoSemana: TextView
     private var semanaActual: Calendar = Calendar.getInstance(TimeZone.getTimeZone("America/Lima"), Locale("es", "PE"))
     private val emociones = mapOf(
-        "feliz" to "😊",
-        "triste" to "😢",
-        "depresivo" to "😔",
-        "enojado" to "😠",
-        "cansado" to "😫"
+        "feliz" to R.drawable.cara_feliz,
+        "triste" to R.drawable.cara_triste,
+        "depresivo" to R.drawable.cara_depresiva,
+        "enojado" to R.drawable.cara_enojada,
+        "cansado" to R.drawable.cara_cansada
     )
-    private val emojiNeutral = "😐"
+    private val emojiNeutral = R.drawable.cara_neutra
 
     private val emocionesEspecificas = mapOf(
         "feliz" to listOf("Extasiado", "Emocionado", "Alegre", "Contento"),
@@ -88,11 +89,10 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
     }
 
     private fun setupGridEmocionesSeleccionables() {
-        emociones.forEach { (emocion, emoji) ->
-            val textView = TextView(this).apply {
-                text = emoji
-                textSize = 32f
-                gravity = Gravity.CENTER
+        emociones.forEach { (emocion, imagenResId) ->
+            val imageView = ImageView(this).apply {
+                setImageResource(imagenResId)
+                scaleType = ImageView.ScaleType.FIT_CENTER
                 setPadding(16, 16, 16, 16)
                 isClickable = true
                 isFocusable = true
@@ -105,12 +105,12 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
 
             val params = GridLayout.LayoutParams().apply {
                 width = 0
-                height = GridLayout.LayoutParams.WRAP_CONTENT
+                height = 280 // Altura fija en dp
                 columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
                 setMargins(8, 8, 8, 8)
             }
 
-            gridEmocionesSeleccionables.addView(textView, params)
+            gridEmocionesSeleccionables.addView(imageView, params)
         }
     }
 
@@ -189,31 +189,29 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
         val diaActual = calendar.get(Calendar.DAY_OF_WEEK)
         val diaSemanaActual = if (diaActual == Calendar.SUNDAY) 7 else diaActual - 1
 
-        // Agregar los emojis al grid
+        // Agregar las imágenes al grid
         for (i in 1..7) {
-            val textView = TextView(this).apply {
-                text = emojiNeutral
-                textSize = 32f
-                gravity = Gravity.CENTER
+            val imageView = ImageView(this).apply {
+                setImageResource(emojiNeutral)
+                scaleType = ImageView.ScaleType.FIT_CENTER
                 setPadding(8, 8, 8, 8)
                 alpha = 1.0f
                 isEnabled = true
-                setTextColor(resources.getColor(android.R.color.black, theme))
             }
 
             // Solo agregar el fondo si estamos en la semana actual y es el día actual
             if (esSemanaActual && i == diaSemanaActual) {
-                textView.setBackgroundResource(R.drawable.bg_dia_actual)
+                imageView.setBackgroundResource(R.drawable.bg_dia_actual)
             }
 
             val params = GridLayout.LayoutParams().apply {
                 width = 0
-                height = GridLayout.LayoutParams.WRAP_CONTENT
+                height = 140 // Altura fija en dp
                 columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
                 setMargins(8, 8, 8, 8)
             }
 
-            gridEmociones.addView(textView, params)
+            gridEmociones.addView(imageView, params)
         }
     }
 
@@ -228,10 +226,9 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
             gridEmocionesSeleccionables.alpha = 1.0f
             // Habilitar todos los emojis
             for (i in 0 until gridEmocionesSeleccionables.childCount) {
-                val child = gridEmocionesSeleccionables.getChildAt(i) as TextView
+                val child = gridEmocionesSeleccionables.getChildAt(i) as ImageView
                 child.isEnabled = true
                 child.alpha = 1.0f
-                child.setTextColor(resources.getColor(android.R.color.black, theme))
             }
         } else {
             textoSeleccionEmocion.text = "Navega a la semana actual para seleccionar una emoción"
@@ -239,10 +236,9 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
             gridEmocionesSeleccionables.alpha = 1.0f
             // Deshabilitar todos los emojis
             for (i in 0 until gridEmocionesSeleccionables.childCount) {
-                val child = gridEmocionesSeleccionables.getChildAt(i) as TextView
+                val child = gridEmocionesSeleccionables.getChildAt(i) as ImageView
                 child.isEnabled = false
                 child.alpha = 0.5f
-                child.setTextColor(resources.getColor(android.R.color.darker_gray, theme))
             }
         }
     }
@@ -334,9 +330,9 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
                 background = getDrawable(R.drawable.bg_dialog_button)
                 setTextColor(resources.getColor(R.color.colorPrimary, theme))
                 setOnClickListener {
-                    // Actualizar el emoji en el grid inmediatamente
-                    val textView = gridEmociones.getChildAt(diaSemanaActual + 13) as TextView
-                    textView.text = emociones[emocion]
+                    // Actualizar la imagen en el grid inmediatamente
+                    val imageView = gridEmociones.getChildAt(diaSemanaActual + 13) as ImageView
+                    imageView.setImageResource(emociones[emocion] ?: emojiNeutral)
                     // Mostrar diálogo de confirmación inmediatamente
                     mostrarDialogoConfirmacion(emocion, emocionEspecifica, contexto, userId, fecha)
                     dialog.dismiss()
@@ -369,9 +365,9 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
         val mensajeTextView = dialogView.findViewById<TextView>(R.id.mensajeConfirmacion)
         mensajeTextView.text = "Me siento $emocionEspecifica con mi $contexto"
 
-        // Configurar el emoji
-        val emojiTextView = dialogView.findViewById<TextView>(R.id.emojiConfirmacion)
-        emojiTextView.text = emociones[emocion]
+        // Configurar la imagen
+        val emojiImageView = dialogView.findViewById<ImageView>(R.id.emojiConfirmacion)
+        emojiImageView.setImageResource(emociones[emocion] ?: emojiNeutral)
 
         // Configurar los botones
         val btnContarleDeppy = dialogView.findViewById<Button>(R.id.btnContarleDeppy)
@@ -460,24 +456,22 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
                     if (document.exists()) {
                         val emocion = document.getString("emocion")
                         if (emocion != null) {
-                            val textView = gridEmociones.getChildAt(i + 14) as TextView
-                            textView.apply {
-                                text = emociones[emocion]
-                                textSize = 32f
+                            val imageView = gridEmociones.getChildAt(i + 14) as ImageView
+                            imageView.apply {
+                                setImageResource(emociones[emocion] ?: emojiNeutral)
+                                scaleType = ImageView.ScaleType.FIT_CENTER
                                 alpha = 1.0f
                                 isEnabled = true
-                                setTextColor(resources.getColor(android.R.color.black, theme))
                             }
                         }
                     } else {
-                        // Si no existe documento para esta fecha, mostrar emoji neutro
-                        val textView = gridEmociones.getChildAt(i + 14) as TextView
-                        textView.apply {
-                            text = emojiNeutral
-                            textSize = 32f
+                        // Si no existe documento para esta fecha, mostrar imagen neutra
+                        val imageView = gridEmociones.getChildAt(i + 14) as ImageView
+                        imageView.apply {
+                            setImageResource(emojiNeutral)
+                            scaleType = ImageView.ScaleType.FIT_CENTER
                             alpha = 1.0f
                             isEnabled = true
-                            setTextColor(resources.getColor(android.R.color.black, theme))
                         }
                     }
                 }
