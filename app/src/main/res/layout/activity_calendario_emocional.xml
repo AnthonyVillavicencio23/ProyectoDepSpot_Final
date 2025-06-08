@@ -2,13 +2,14 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/background_light">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="@color/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
         app:layout_constraintTop_toTopOf="parent">
@@ -26,18 +27,19 @@
         android:id="@+id/navegacionCalendario"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
         android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
         <ImageButton
             android:id="@+id/btnSemanaAnterior"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_previous"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_circular_button"
+            android:src="@drawable/ic_arrow_left"
+            android:tint="@color/white"
             android:contentDescription="Semana anterior" />
 
         <TextView
@@ -45,27 +47,29 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="16dp"
-            android:textSize="16sp"
-            android:textStyle="bold" />
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary" />
 
         <ImageButton
             android:id="@+id/btnSemanaSiguiente"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_media_next"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_circular_button"
+            android:src="@drawable/ic_arrow_right"
+            android:tint="@color/white"
             android:contentDescription="Semana siguiente" />
 
     </LinearLayout>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardGridEmociones"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/contenedorEmociones"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="8dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
+        app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="#FFFDE7"
         app:layout_constraintTop_toBottomOf="@id/navegacionCalendario">
 
         <GridLayout
@@ -84,7 +88,9 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="Lun"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/diaMar"
@@ -93,7 +99,9 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="Mar"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/diaMie"
@@ -102,7 +110,9 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="Mié"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/diaJue"
@@ -111,7 +121,9 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="Jue"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/diaVie"
@@ -120,7 +132,9 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="Vie"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/diaSab"
@@ -129,7 +143,9 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="Sáb"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
             <TextView
                 android:id="@+id/diaDom"
@@ -138,7 +154,9 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="Dom"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp" />
 
             <!-- Fechas -->
             <TextView
@@ -147,8 +165,8 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:gravity="center"
-                android:textSize="12sp"
-                android:textColor="@android:color/black" />
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/fechaMar"
@@ -156,8 +174,8 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:gravity="center"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray" />
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/fechaMie"
@@ -165,8 +183,8 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:gravity="center"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray" />
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/fechaJue"
@@ -174,8 +192,8 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:gravity="center"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray" />
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/fechaVie"
@@ -183,8 +201,8 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:gravity="center"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray" />
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/fechaSab"
@@ -192,8 +210,8 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:gravity="center"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray" />
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/fechaDom"
@@ -201,46 +219,50 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:gravity="center"
-                android:textSize="12sp"
-                android:textColor="@android:color/darker_gray" />
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
 
             <!-- Los emojis se agregarán dinámicamente -->
 
         </GridLayout>
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
-    <TextView
-        android:id="@+id/textoSeleccionEmocion"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardTitulo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:layout_marginHorizontal="48dp"
-        android:paddingHorizontal="20dp"
-        android:paddingVertical="6dp"
-        android:background="@drawable/bg_texto_seleccion"
-        android:text="¿Cómo te sientes en este momento?"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/white"
-        android:gravity="center"
-        android:maxWidth="280dp"
-        android:minWidth="200dp"
-        app:layout_constraintTop_toBottomOf="@id/cardGridEmociones"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="@color/colorPrimary"
+        app:layout_constraintTop_toBottomOf="@id/contenedorEmociones"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/textoSeleccionEmocion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingVertical="12dp"
+            android:text="¿Cómo te sientes en este momento?"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:maxWidth="280dp"
+            android:minWidth="200dp" />
+
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardGridEmocionesSeleccionables"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="32dp"
+        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
-        app:cardCornerRadius="8dp"
+        app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="#FFFDE7"
-        app:layout_constraintTop_toBottomOf="@id/textoSeleccionEmocion"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/cardTitulo">
 
         <GridLayout
             android:id="@+id/gridEmocionesSeleccionables"
@@ -262,13 +284,15 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardGridEmociones" />
+        app:layout_constraintTop_toBottomOf="@id/contenedorEmociones" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:background="@color/white"
+        android:elevation="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

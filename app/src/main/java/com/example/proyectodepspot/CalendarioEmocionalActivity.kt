@@ -21,6 +21,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
+import com.google.android.material.appbar.MaterialToolbar
 
 class CalendarioEmocionalActivity : AppCompatActivity() {
     private lateinit var gridEmociones: GridLayout
@@ -61,6 +62,12 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
         gridEmocionesSeleccionables = findViewById(R.id.gridEmocionesSeleccionables)
         textoSeleccionEmocion = findViewById(R.id.textoSeleccionEmocion)
         textoRangoSemana = findViewById(R.id.textoRangoSemana)
+
+        // Configurar la barra superior
+        val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
 
         setupBottomNavigation()
         setupNavegacionSemana()
@@ -267,48 +274,95 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
     }
 
     private fun mostrarPopupEmocionEspecifica(emocion: String, userId: String, fecha: String, diaSemanaActual: Int) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Me siento...")
-
+        val builder = AlertDialog.Builder(this, R.style.DialogTheme)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_emocion_especifica, null)
+        val gridLayout = dialogView.findViewById<GridLayout>(R.id.gridEmocionesEspecificas)
+        
         val emocionesEspecificasList = emocionesEspecificas[emocion] ?: return
-        val items = emocionesEspecificasList.toTypedArray()
-
-        builder.setItems(items) { _, which ->
-            val emocionEspecifica = items[which]
-            mostrarPopupContexto(emocion, emocionEspecifica, userId, fecha, diaSemanaActual)
+        
+        // Limpiar el grid
+        gridLayout.removeAllViews()
+        
+        // Crear el diálogo
+        val dialog = builder.setView(dialogView).create()
+        
+        // Agregar botones al grid
+        emocionesEspecificasList.forEach { emocionEspecifica ->
+            val button = Button(this).apply {
+                text = emocionEspecifica
+                background = getDrawable(R.drawable.bg_dialog_button)
+                setTextColor(resources.getColor(R.color.colorPrimary, theme))
+                setOnClickListener {
+                    mostrarPopupContexto(emocion, emocionEspecifica, userId, fecha, diaSemanaActual)
+                    dialog.dismiss()
+                }
+            }
+            
+            val params = GridLayout.LayoutParams().apply {
+                width = 0
+                height = GridLayout.LayoutParams.WRAP_CONTENT
+                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                setMargins(8, 8, 8, 8)
+            }
+            
+            gridLayout.addView(button, params)
         }
-
-        builder.setNegativeButton("Cancelar") { dialog, _ ->
+        
+        // Configurar el botón de cancelar
+        dialogView.findViewById<Button>(R.id.btnCancelar).setOnClickListener {
             dialog.dismiss()
         }
-
-        builder.show()
+        
+        dialog.show()
     }
 
     private fun mostrarPopupContexto(emocion: String, emocionEspecifica: String, userId: String, fecha: String, diaSemanaActual: Int) {
-        val builder = AlertDialog.Builder(this)
-        builder.setTitle("Por...")
-
-        val items = contextos.toTypedArray()
-
-        builder.setItems(items) { _, which ->
-            val contexto = items[which]
-            // Actualizar el emoji en el grid inmediatamente
-            val textView = gridEmociones.getChildAt(diaSemanaActual + 13) as TextView
-            textView.text = emociones[emocion]
-            // Mostrar diálogo de confirmación inmediatamente
-            mostrarDialogoConfirmacion(emocion, emocionEspecifica, contexto, userId, fecha)
+        val builder = AlertDialog.Builder(this, R.style.DialogTheme)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_contexto, null)
+        val gridLayout = dialogView.findViewById<GridLayout>(R.id.gridContextos)
+        
+        // Limpiar el grid
+        gridLayout.removeAllViews()
+        
+        // Crear el diálogo
+        val dialog = builder.setView(dialogView).create()
+        
+        // Agregar botones al grid
+        contextos.forEach { contexto ->
+            val button = Button(this).apply {
+                text = contexto
+                background = getDrawable(R.drawable.bg_dialog_button)
+                setTextColor(resources.getColor(R.color.colorPrimary, theme))
+                setOnClickListener {
+                    // Actualizar el emoji en el grid inmediatamente
+                    val textView = gridEmociones.getChildAt(diaSemanaActual + 13) as TextView
+                    textView.text = emociones[emocion]
+                    // Mostrar diálogo de confirmación inmediatamente
+                    mostrarDialogoConfirmacion(emocion, emocionEspecifica, contexto, userId, fecha)
+                    dialog.dismiss()
+                }
+            }
+            
+            val params = GridLayout.LayoutParams().apply {
+                width = 0
+                height = GridLayout.LayoutParams.WRAP_CONTENT
+                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                setMargins(8, 8, 8, 8)
+            }
+            
+            gridLayout.addView(button, params)
         }
-
-        builder.setNegativeButton("Cancelar") { dialog, _ ->
+        
+        // Configurar el botón de cancelar
+        dialogView.findViewById<Button>(R.id.btnCancelar).setOnClickListener {
             dialog.dismiss()
         }
-
-        builder.show()
+        
+        dialog.show()
     }
 
     private fun mostrarDialogoConfirmacion(emocion: String, emocionEspecifica: String, contexto: String, userId: String, fecha: String) {
-        val builder = AlertDialog.Builder(this)
+        val builder = AlertDialog.Builder(this, R.style.DialogTheme)
         val dialogView = layoutInflater.inflate(R.layout.dialog_confirmacion_emocion, null)
         
         // Configurar el texto del mensaje
@@ -451,5 +505,10 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
                 else -> false
             }
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 } 

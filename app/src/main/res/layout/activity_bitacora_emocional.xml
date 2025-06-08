@@ -26,34 +26,90 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="24dp"
+        android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
         app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:paddingBottom="24dp">
 
-            <Button
-                android:id="@+id/btnCalendarioEmocional"
+       
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardCalendario"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/tituloCalendario"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="Tu Bitácora Personal"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPrimary"
+                        android:alpha="0.9"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <Button
+                        android:id="@+id/btnCalendarioEmocional"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Ir a mi calendario emocional"
+                        android:textColor="@color/white"
+                        android:backgroundTint="@color/colorPrimary"
+                        app:cornerRadius="8dp"
+                        app:icon="@drawable/ic_calendar"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tituloPrincipal"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Ir a mi calendario emocional"
-                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="32dp"
+                android:text="¡Hora de Crecer!"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimary"
+                android:alpha="0.9"
+                android:fontFamily="sans-serif-medium"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/toolbar" />
+                app:layout_constraintTop_toBottomOf="@id/cardCalendario" />
 
             <TextView
                 android:id="@+id/tituloReto"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="Mi reto de hoy"
+                android:text="Desafío diario para practicar"
                 android:textSize="20sp"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btnCalendarioEmocional" />
+                app:layout_constraintTop_toBottomOf="@id/tituloPrincipal" />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardReto"
@@ -136,11 +192,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="Desafío Personalizado con IA"
+                android:text="Desafío propuesto por Deppy"
                 android:textSize="20sp"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/cardReto" />
 
             <androidx.cardview.widget.CardView
@@ -148,9 +204,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
+                android:layout_marginBottom="48dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="4dp"
-                app:layout_constraintTop_toBottomOf="@id/tituloRetoIA">
+                app:layout_constraintTop_toBottomOf="@id/tituloRetoIA"
+                app:layout_constraintBottom_toBottomOf="parent">
 
                 <LinearLayout
                     android:layout_width="match_parent"

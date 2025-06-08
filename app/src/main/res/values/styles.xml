@@ -23,4 +23,14 @@
         <item name="android:minWidth">48dp</item>
         <item name="android:minHeight">48dp</item>
     </style>
+
+    <!-- Estilo base para diálogos -->
+    <style name="DialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
 </resources> 

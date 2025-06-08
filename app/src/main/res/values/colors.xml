@@ -29,7 +29,7 @@
     <!-- Colores de la interfaz -->
     <color name="input_background">#F8F9FA</color>
     <color name="hint_text">#95A5A6</color>
-    <color name="text_primary">#FF000000</color>
+    <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
     <color name="error">#B00020</color>
     <color name="button_background">#fae4dc</color>
@@ -65,4 +65,10 @@
     <color name="chat_send_button_icon_disabled">#FFFFFF</color>
     <color name="chat_divider">#EEEEEE</color>
     <color name="red">#FF0000</color>
+    
+    <!-- Colores para el Calendario Emocional -->
+    <color name="background_light">#fff4e9</color>
+    <color name="primary_color">@color/colorPrimary</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="accent_color">@color/colorAccent</color>
 </resources>
