@@ -71,4 +71,6 @@ dependencies {
     implementation 'org.json:json:20210307'
 
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
+    implementation 'com.opencsv:opencsv:5.7.1'
 } 

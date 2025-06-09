@@ -91,7 +91,7 @@ class ChatActivity : AppCompatActivity() {
         }
 
         // Inicializar el repositorio
-        chatRepository = FirebaseChatRepository()
+        chatRepository = FirebaseChatRepository(this)
 
         // Inicializar vistas
         recyclerView = findViewById(R.id.recyclerView)

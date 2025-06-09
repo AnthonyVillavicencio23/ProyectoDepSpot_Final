@@ -60,7 +60,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
-        chatRepository = FirebaseChatRepository()
+        chatRepository = FirebaseChatRepository(this)
         gridEmociones = findViewById(R.id.gridEmociones)
         gridEmocionesSeleccionables = findViewById(R.id.gridEmocionesSeleccionables)
         textoSeleccionEmocion = findViewById(R.id.textoSeleccionEmocion)

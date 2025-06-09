@@ -1,5 +1,6 @@
 package com.example.proyectodepspot.data
 
+import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -16,12 +17,12 @@ import com.example.proyectodepspot.api.OpenAIService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-class FirebaseChatRepository {
+class FirebaseChatRepository(private val context: Context) {
     private val TAG = "FirebaseChatRepository"
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private val usuariosCollection = db.collection("usuarios")
-    private val depresionDetector = DepresionDetector()
+    private val depresionDetector = DepresionDetector(context)
     
     private val openAIService = Retrofit.Builder()
         .baseUrl(OpenAIConfig.BASE_URL)
