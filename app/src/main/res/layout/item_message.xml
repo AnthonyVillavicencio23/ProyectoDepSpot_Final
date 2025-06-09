@@ -31,15 +31,31 @@
         app:layout_constraintStart_toEndOf="@id/botIcon"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:id="@+id/messageText"
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/message_text"
-            android:textSize="17sp"
-            android:lineSpacingExtra="4dp"
-            android:layout_margin="8dp"
-            android:maxWidth="228dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/messageText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/message_text"
+                android:textSize="17sp"
+                android:lineSpacingExtra="4dp"
+                android:layout_margin="8dp"
+                android:maxWidth="228dp" />
+
+            <ProgressBar
+                android:id="@+id/typingProgress"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="4dp"
+                android:visibility="gone"
+                android:indeterminateTint="@color/colorPrimary" />
+
+        </LinearLayout>
 
     </FrameLayout>
 

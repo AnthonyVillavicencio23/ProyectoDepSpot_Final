@@ -26,34 +26,24 @@ class DepresionDetector {
         "no quiero vivir", "me quiero morir", "no tengo ganas", "no tengo fuerzas"
     )
 
-    // Interfaz para la API de Brevo
-    interface BrevoService {
-        @POST("v3/smtp/email")
+    // Interfaz para la API de Resend
+    interface ResendService {
+        @POST("emails")
         suspend fun sendEmail(
-            @Header("api-key") apiKey: String,
+            @Header("Authorization") apiKey: String,
             @Body emailRequest: EmailRequest
         ): Response<Unit>
     }
 
     // Clase para la solicitud de correo
     data class EmailRequest(
-        val sender: Sender,
-        val to: List<To>,
+        val from: String,
+        val to: String,
         val subject: String,
-        val htmlContent: String
+        val html: String
     )
 
-    data class Sender(
-        val name: String,
-        val email: String
-    )
-
-    data class To(
-        val email: String,
-        val name: String
-    )
-
-    private val brevoService: BrevoService by lazy {
+    private val resendService: ResendService by lazy {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
@@ -63,11 +53,11 @@ class DepresionDetector {
             .build()
 
         Retrofit.Builder()
-            .baseUrl("https://api.brevo.com/")
+            .baseUrl("https://api.resend.com/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(BrevoService::class.java)
+            .create(ResendService::class.java)
     }
 
     suspend fun analizarMensaje(userId: String, mensaje: String) {
@@ -82,13 +72,13 @@ class DepresionDetector {
 
         if (palabrasEncontradas.isNotEmpty()) {
             Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Palabras encontradas: $palabrasEncontradas")
-            enviarAlertaContactos(userId)
+            enviarAlertaContactos(userId, palabrasEncontradas)
         } else {
             Log.d(TAG, "No se detectaron signos depresivos en el mensaje")
         }
     }
 
-    private suspend fun enviarAlertaContactos(userId: String) {
+    private suspend fun enviarAlertaContactos(userId: String, palabrasEncontradas: List<String>) {
         try {
             Log.d(TAG, "Buscando contactos de apoyo para el usuario: $userId")
             
@@ -115,39 +105,123 @@ class DepresionDetector {
             Log.d(TAG, "Detalles de contactos: ${contactos.map { "${it.nombre} (${it.correo})" }}")
 
             if (contactos.isNotEmpty()) {
-                // Preparar el correo
-                val emailRequest = EmailRequest(
-                    sender = Sender(
-                        name = "Deppy - Sistema de Alerta",
-                        email = "megamrd102@gmail.com"
-                    ),
-                    to = contactos.map { contacto ->
-                        To(
-                            email = contacto.correo,
-                            name = contacto.nombre
-                        )
-                    },
-                    subject = "Alerta: Usuario con síntomas depresivos",
-                    htmlContent = """
-                        <h2>Alerta de Deppy</h2>
-                        <p>Hemos detectado que el usuario ha mostrado signos de depresión en su conversación reciente.</p>
-                        <p>Por favor, contacta con el usuario lo antes posible para brindarle apoyo.</p>
-                        <p>Este es un mensaje automático del sistema de alerta de Deppy.</p>
-                    """.trimIndent()
-                )
+                // Preparar el correo para cada contacto
+                for (contacto in contactos) {
+                    val emailRequest = EmailRequest(
+                        from = "deppy_ia@depspot.online",
+                        to = contacto.correo,
+                        subject = "🚨 Alerta: Usuario con síntomas depresivos",
+                        html = """
+                            <!DOCTYPE html>
+                            <html>
+                            <head>
+                                <style>
+                                    body {
+                                        font-family: Arial, sans-serif;
+                                        line-height: 1.6;
+                                        color: #333;
+                                        max-width: 600px;
+                                        margin: 0 auto;
+                                        padding: 20px;
+                                    }
+                                    .header {
+                                        text-align: center;
+                                        padding: 20px;
+                                        background-color: #f8f9fa;
+                                        border-radius: 8px;
+                                        margin-bottom: 20px;
+                                    }
+                                    .logo {
+                                        max-width: 150px;
+                                        margin-bottom: 15px;
+                                    }
+                                    .alert-box {
+                                        background-color: #fff3cd;
+                                        border: 1px solid #ffeeba;
+                                        color: #856404;
+                                        padding: 15px;
+                                        border-radius: 8px;
+                                        margin: 20px 0;
+                                    }
+                                    .info-box {
+                                        background-color: #e9ecef;
+                                        padding: 15px;
+                                        border-radius: 8px;
+                                        margin: 20px 0;
+                                    }
+                                    .footer {
+                                        text-align: center;
+                                        margin-top: 30px;
+                                        padding-top: 20px;
+                                        border-top: 1px solid #dee2e6;
+                                        font-size: 0.9em;
+                                        color: #6c757d;
+                                    }
+                                    .button {
+                                        display: inline-block;
+                                        padding: 10px 20px;
+                                        background-color: #007bff;
+                                        color: white;
+                                        text-decoration: none;
+                                        border-radius: 5px;
+                                        margin: 20px 0;
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                <div class="header">
+                                    <img src="https://st4.depositphotos.com/5161043/25260/v/450/depositphotos_252604978-stock-illustration-water-wave-symbol-and-icon.jpg" alt="Deppy Logo" class="logo">
+                                    <h1>Alerta de Deppy</h1>
+                                </div>
+                                
+                                <div class="alert-box">
+                                    <h2>🚨 Alerta de Detección</h2>
+                                    <p>Hemos detectado que el usuario <strong>${userEmail}</strong> ha mostrado signos de depresión en su conversación reciente.</p>
+                                </div>
 
-                Log.d(TAG, "Preparando envío de correo a: ${contactos.map { it.correo }}")
+                                <div class="info-box">
+                                    <h3>Detalles de la Situación:</h3>
+                                    <ul>
+                                        <li>Usuario: ${userEmail}</li>
+                                        <li>Palabras detectadas: ${palabrasEncontradas.joinToString(", ")}</li>
+                                    </ul>
+                                </div>
 
-                // Enviar el correo usando Brevo
-                val response = brevoService.sendEmail(
-                    apiKey = "x ",
-                    emailRequest = emailRequest
-                )
+                                <p>Como contacto de apoyo, tu intervención es crucial en este momento. Por favor:</p>
+                                <ul>
+                                    <li>Contacta al usuario lo antes posible</li>
+                                    <li>Mantén una conversación empática y comprensiva</li>
+                                    <li>Escucha activamente sus preocupaciones</li>
+                                    <li>Ofrece tu apoyo y compañía</li>
+                                </ul>
 
-                if (response.isSuccessful) {
-                    Log.d(TAG, "Alerta enviada exitosamente a los contactos de apoyo")
-                } else {
-                    Log.e(TAG, "Error al enviar correo. Código: ${response.code()}, Mensaje: ${response.message()}")
+                                <div style="text-align: center;">
+                                    <a href="mailto:${userEmail}" class="button">Contactar al Usuario</a>
+                                </div>
+
+                                <div class="footer">
+                                    <p>Este es un mensaje automático del sistema de alerta de Deppy.</p>
+                                    <p>Si necesitas ayuda adicional, no dudes en contactarnos.</p>
+                                    <p>© 2024 Deppy - Sistema de Apoyo Emocional</p>
+                                </div>
+                            </body>
+                            </html>
+                        """.trimIndent()
+                    )
+
+                    Log.d(TAG, "Preparando envío de correo a: ${contacto.correo}")
+
+                    // Enviar el correo usando Resend
+                    val response = resendService.sendEmail(
+                        apiKey = "x",
+                        emailRequest = emailRequest
+                    )
+
+                    if (response.isSuccessful) {
+                        Log.d(TAG, "Alerta enviada exitosamente a ${contacto.correo}")
+                    } else {
+                        Log.e(TAG, "Error al enviar correo a ${contacto.correo}. Código: ${response.code()}, Mensaje: ${response.message()}")
+                    }
                 }
             } else {
                 Log.d(TAG, "No se encontraron contactos de apoyo para enviar la alerta")

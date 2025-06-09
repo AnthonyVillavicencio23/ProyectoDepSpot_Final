@@ -274,6 +274,42 @@
 
     </androidx.cardview.widget.CardView>
 
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="64dp"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/white"
+        app:layout_constraintTop_toBottomOf="@id/cardGridEmocionesSeleccionables">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Holi, soy Deppy 🌟"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginBottom="12dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text= "Aquí puedes registrar cómo te sientes cada día con un emoji, contarme más si quieres, y juntos guardaremos tus emociones. ¡También puedes ver cómo has estado en semanas anteriores!"
+                android:textSize="18sp"
+                android:lineSpacingExtra="4dp"/>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
     <Button
         android:id="@+id/btnSeleccionarEmocion"
         android:layout_width="wrap_content"

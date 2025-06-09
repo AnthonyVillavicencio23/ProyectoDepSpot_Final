@@ -17,10 +17,13 @@
 
     <ImageView
         android:id="@+id/emojiConfirmacion"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
         android:layout_marginBottom="16dp"
-        android:scaleType="fitCenter"/>
+        android:scaleType="centerCrop"
+        android:background="@drawable/bg_emotion_circle"
+        android:clipToOutline="true"
+        android:padding="2dp"/>
 
     <TextView
         android:id="@+id/mensajeConfirmacion"
