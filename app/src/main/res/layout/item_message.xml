@@ -12,9 +12,10 @@
         android:layout_height="40dp"
         android:src="@drawable/icono_deppy"
         android:visibility="gone"
-        android:padding="4dp"
         android:layout_marginStart="1dp"
-        android:background="@drawable/circle_background"
+        android:background="@drawable/bg_emotion_circle"
+        android:clipToOutline="true"
+        android:outlineProvider="background"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

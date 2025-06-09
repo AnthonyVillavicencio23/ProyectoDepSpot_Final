@@ -1,5 +1,6 @@
 package com.example.proyectodepspot.data
 
+import android.content.Context
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -12,11 +13,14 @@ import retrofit2.http.POST
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
+import java.text.SimpleDateFormat
+import java.util.*
 
-class DepresionDetector {
+class DepresionDetector(private val context: Context) {
     private val TAG = "DepresionDetector"
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private val suicideClassifier = SuicideClassifier(context)
     
     // Palabras clave que podrían indicar depresión
     private val palabrasDepresivas = setOf(
@@ -70,15 +74,79 @@ class DepresionDetector {
             mensajeLower.contains(palabra)
         }
 
-        if (palabrasEncontradas.isNotEmpty()) {
-            Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Palabras encontradas: $palabrasEncontradas")
-            enviarAlertaContactos(userId, palabrasEncontradas)
+        // Obtener la probabilidad de que el mensaje sea suicida usando el clasificador
+        val probabilidadSuicida = suicideClassifier.classifyMessage(mensaje)
+        Log.d(TAG, "Probabilidad de suicidio: $probabilidadSuicida")
+
+        // Si hay palabras depresivas o la probabilidad de suicidio es alta, enviar alerta
+        if (palabrasEncontradas.isNotEmpty() || probabilidadSuicida > 0.7) {
+            Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Palabras encontradas: $palabrasEncontradas, Probabilidad de suicidio: $probabilidadSuicida")
+            
+            // Actualizar el contador de detecciones
+            actualizarContadorDetecciones(userId)
+            
+            // Enviar alerta a contactos
+            enviarAlertaContactos(userId, palabrasEncontradas, probabilidadSuicida)
         } else {
             Log.d(TAG, "No se detectaron signos depresivos en el mensaje")
         }
     }
 
-    private suspend fun enviarAlertaContactos(userId: String, palabrasEncontradas: List<String>) {
+    private fun getPeruDate(): String {
+        val peruTimeZone = TimeZone.getTimeZone("America/Lima")
+        val calendar = Calendar.getInstance()
+        calendar.timeZone = peruTimeZone
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE"))
+        dateFormat.timeZone = peruTimeZone
+        return dateFormat.format(calendar.time)
+    }
+
+    private suspend fun actualizarContadorDetecciones(userId: String) {
+        try {
+            val userEmail = auth.currentUser?.email
+            if (userEmail == null) {
+                Log.e(TAG, "No se pudo obtener el email del usuario")
+                return
+            }
+
+            // Obtener la fecha actual en formato dd,mes,año usando la zona horaria de Perú
+            val peruTimeZone = TimeZone.getTimeZone("America/Lima")
+            val calendar = Calendar.getInstance(peruTimeZone)
+            val fechaActual = SimpleDateFormat("dd,MMMM,yyyy", Locale("es", "PE")).format(calendar.time)
+            Log.d(TAG, "Fecha actual (Perú): $fechaActual")
+
+            // Referencia al documento de la fecha actual en la subcolección de detecciones
+            val deteccionesRef = db.collection("usuarios")
+                .document(userId)
+                .collection("detecciones")
+                .document(fechaActual)
+
+            // Intentar actualizar el contador usando una transacción
+            db.runTransaction { transaction ->
+                val snapshot = transaction.get(deteccionesRef)
+                if (snapshot.exists()) {
+                    // Si el documento existe, incrementar el contador
+                    val nuevoContador = snapshot.getLong("total")?.plus(1) ?: 1
+                    transaction.update(deteccionesRef, "total", nuevoContador)
+                    Log.d(TAG, "Contador actualizado a: $nuevoContador para la fecha $fechaActual")
+                } else {
+                    // Si el documento no existe, crearlo con contador inicial 1
+                    transaction.set(deteccionesRef, mapOf(
+                        "total" to 1,
+                        "fecha" to fechaActual
+                    ))
+                    Log.d(TAG, "Nuevo documento creado para la fecha $fechaActual con contador inicial: 1")
+                }
+            }.await()
+
+            Log.d(TAG, "Contador de detecciones actualizado para el usuario $userId en la fecha $fechaActual")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al actualizar el contador de detecciones", e)
+            e.printStackTrace()
+        }
+    }
+
+    private suspend fun enviarAlertaContactos(userId: String, palabrasEncontradas: List<String>, probabilidadSuicida: Double) {
         try {
             Log.d(TAG, "Buscando contactos de apoyo para el usuario: $userId")
             
@@ -138,24 +206,15 @@ class DepresionDetector {
                                     .alert-box {
                                         background-color: #fff3cd;
                                         border: 1px solid #ffeeba;
-                                        color: #856404;
-                                        padding: 15px;
                                         border-radius: 8px;
-                                        margin: 20px 0;
+                                        padding: 15px;
+                                        margin-bottom: 20px;
                                     }
                                     .info-box {
                                         background-color: #e9ecef;
-                                        padding: 15px;
                                         border-radius: 8px;
-                                        margin: 20px 0;
-                                    }
-                                    .footer {
-                                        text-align: center;
-                                        margin-top: 30px;
-                                        padding-top: 20px;
-                                        border-top: 1px solid #dee2e6;
-                                        font-size: 0.9em;
-                                        color: #6c757d;
+                                        padding: 15px;
+                                        margin-bottom: 20px;
                                     }
                                     .button {
                                         display: inline-block;
@@ -164,7 +223,13 @@ class DepresionDetector {
                                         color: white;
                                         text-decoration: none;
                                         border-radius: 5px;
-                                        margin: 20px 0;
+                                        margin: 10px 0;
+                                    }
+                                    .footer {
+                                        text-align: center;
+                                        margin-top: 30px;
+                                        font-size: 0.9em;
+                                        color: #6c757d;
                                     }
                                 </style>
                             </head>
@@ -184,6 +249,7 @@ class DepresionDetector {
                                     <ul>
                                         <li>Usuario: ${userEmail}</li>
                                         <li>Palabras detectadas: ${palabrasEncontradas.joinToString(", ")}</li>
+                                        <li>Probabilidad de riesgo suicida: ${String.format("%.2f", probabilidadSuicida * 100)}%</li>
                                     </ul>
                                 </div>
 
@@ -213,7 +279,7 @@ class DepresionDetector {
 
                     // Enviar el correo usando Resend
                     val response = resendService.sendEmail(
-                        apiKey = "x",
+                        apiKey = "X",
                         emailRequest = emailRequest
                     )
 
