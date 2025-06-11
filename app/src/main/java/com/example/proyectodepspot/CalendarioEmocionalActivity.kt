@@ -101,7 +101,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
             // Crear el texto de la emoción
             val textView = TextView(this).apply {
                 text = emocion.capitalize()
-                textSize = 14f
+                textSize = 12f
                 setTextColor(resources.getColor(R.color.colorPrimary, theme))
                 gravity = Gravity.CENTER
                 alpha = 1.0f
@@ -437,7 +437,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
                 // Procesar el mensaje sin guardarlo y obtener respuesta de la IA
                 val mensaje = "Me siento $emocionEspecifica con mi $contexto"
                 lifecycleScope.launch {
-                    chatRepository.processMessageWithoutSaving(userId, mensaje)
+                    chatRepository.sendMessage(userId, mensaje)
                 }
                 startActivity(Intent(this, ChatActivity::class.java))
             }

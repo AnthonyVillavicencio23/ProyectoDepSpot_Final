@@ -140,17 +140,6 @@ class ChatActivity : AppCompatActivity() {
             isWaitingForName = true
             // Solo enviamos el mensaje del usuario
             sendMessage(message)
-            // Mostrar estado de pensando
-            messageAdapter.showThinking()
-            // Cambiar a escribiendo después de 1 segundo
-            lifecycleScope.launch {
-                kotlinx.coroutines.delay(1000)
-                messageAdapter.showTyping()
-                // Asegurarnos de que el RecyclerView se desplace al final
-                recyclerView.post {
-                    recyclerView.smoothScrollToPosition(messageAdapter.itemCount - 1)
-                }
-            }
             return
         }
 
@@ -158,33 +147,11 @@ class ChatActivity : AppCompatActivity() {
             isWaitingForAge = false
             // Solo enviamos el mensaje del usuario
             sendMessage(message)
-            // Mostrar estado de pensando
-            messageAdapter.showThinking()
-            // Cambiar a escribiendo después de 1 segundo
-            lifecycleScope.launch {
-                kotlinx.coroutines.delay(1000)
-                messageAdapter.showTyping()
-                // Asegurarnos de que el RecyclerView se desplace al final
-                recyclerView.post {
-                    recyclerView.smoothScrollToPosition(messageAdapter.itemCount - 1)
-                }
-            }
             return
         }
 
         // Para el resto de la conversación, solo enviamos el mensaje del usuario
         sendMessage(message)
-        // Mostrar estado de pensando
-        messageAdapter.showThinking()
-        // Cambiar a escribiendo después de 1 segundo
-        lifecycleScope.launch {
-            kotlinx.coroutines.delay(1000)
-            messageAdapter.showTyping()
-            // Asegurarnos de que el RecyclerView se desplace al final
-            recyclerView.post {
-                recyclerView.smoothScrollToPosition(messageAdapter.itemCount - 1)
-            }
-        }
     }
 
     private fun setupSpeechRecognizer() {
@@ -278,8 +245,6 @@ class ChatActivity : AppCompatActivity() {
         lifecycleScope.launch {
             chatRepository.getMessages(userId).collectLatest { messages ->
                 messageAdapter.submitList(messages)
-                // Ocultar estados cuando llegan nuevos mensajes
-                messageAdapter.hideStatus()
                 if (messages.isNotEmpty()) {
                     recyclerView.post {
                         recyclerView.smoothScrollToPosition(messages.size - 1)

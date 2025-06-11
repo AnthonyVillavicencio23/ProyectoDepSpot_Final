@@ -11,7 +11,7 @@
     <!-- Fondo del mensaje -->
     <item android:bottom="2dp">
         <shape android:shape="rectangle">
-            <solid android:color="#E8F5E9" />
+            <solid android:color="#F0F7F0" />
             <corners android:radius="12dp" />
         </shape>
     </item>

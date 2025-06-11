@@ -35,8 +35,6 @@ class MessageAdapter(
     private val settingsRepository = NotificationSettingsRepository()
     private val notificationHelper = NotificationHelper(context)
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
-    private var isThinking = false
-    private var isTyping = false
 
     fun submitList(newMessages: List<Message>) {
         val previousSize = messages.size
@@ -117,24 +115,6 @@ class MessageAdapter(
         Toast.makeText(context, "Vibración activada", Toast.LENGTH_SHORT).show()
     }
 
-    fun showThinking() {
-        isThinking = true
-        isTyping = false
-        notifyDataSetChanged()
-    }
-
-    fun showTyping() {
-        isThinking = false
-        isTyping = true
-        notifyDataSetChanged()
-    }
-
-    fun hideStatus() {
-        isThinking = false
-        isTyping = false
-        notifyDataSetChanged()
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_message, parent, false)
@@ -142,35 +122,12 @@ class MessageAdapter(
     }
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
-        if (position == messages.size && (isThinking || isTyping)) {
-            // Mostrar mensaje de estado
-            val statusMessage = if (isThinking) "Deppy está pensando..." else "Deppy está pensando..."
-            holder.bind(Message(
-                id = "status",
-                senderId = "bot_depresion",
-                content = statusMessage,
-                timestamp = System.currentTimeMillis()
-            ))
-            // Asegurarnos de que el icono de Deppy sea visible
-            holder.botIcon.visibility = View.VISIBLE
-            // Configurar el estilo del mensaje como si fuera del bot
-            holder.messageContainer.setBackgroundResource(R.drawable.bg_message_received)
-            // Alinear el mensaje a la izquierda
-            val constraintSet = ConstraintSet()
-            constraintSet.clone(holder.rootLayout)
-            constraintSet.clear(R.id.messageContainer, ConstraintSet.END)
-            constraintSet.connect(R.id.messageContainer, ConstraintSet.START, R.id.botIcon, ConstraintSet.END)
-            holder.messageText.gravity = android.view.Gravity.START
-            constraintSet.applyTo(holder.rootLayout)
-            return
-        }
-
         val message = messages[position]
         holder.bind(message)
     }
 
     override fun getItemCount(): Int {
-        return messages.size + if (isThinking || isTyping) 1 else 0
+        return messages.size
     }
 
     class MessageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -183,9 +140,6 @@ class MessageAdapter(
 
         fun bind(message: Message) {
             messageText.text = message.content
-            
-            // Mostrar ProgressBar solo si es el mensaje de pensando
-            typingProgress.visibility = if (message.content == "Deppy está pensando...") View.VISIBLE else View.GONE
             
             // Configurar la zona horaria de Perú
             val peruTimeZone = TimeZone.getTimeZone("America/Lima")
