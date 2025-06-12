@@ -437,7 +437,7 @@ class CalendarioEmocionalActivity : AppCompatActivity() {
                 // Procesar el mensaje sin guardarlo y obtener respuesta de la IA
                 val mensaje = "Me siento $emocionEspecifica con mi $contexto"
                 lifecycleScope.launch {
-                    chatRepository.sendMessage(userId, mensaje)
+                    chatRepository.processMessageWithoutSaving(userId, mensaje)
                 }
                 startActivity(Intent(this, ChatActivity::class.java))
             }

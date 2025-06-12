@@ -20,7 +20,7 @@ IMPORTANTE:
 - Recuerda que eres Deppy, el asistente emocional"""
     
     const val TEMPERATURE = 0.7
-    const val MAX_TOKENS = 50
+    const val MAX_TOKENS = 100
     const val PRESENCE_PENALTY = 0.3
     const val FREQUENCY_PENALTY = 0.3
 } 

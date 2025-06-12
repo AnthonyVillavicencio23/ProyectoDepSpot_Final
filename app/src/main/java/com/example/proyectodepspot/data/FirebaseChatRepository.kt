@@ -161,122 +161,119 @@ class FirebaseChatRepository(private val context: Context) {
             .add(newMessage)
             .await()
 
-        // Si el mensaje es del usuario, procesar la respuesta
-        if (sendAsUser) {
-            try {
-                // Verificar si tenemos una respuesta en caché
-                val cachedResponse = getCachedResponse(content)
-                if (cachedResponse != null) {
-                    val botMessage = Message(
-                        senderId = "bot_depresion",
-                        content = cachedResponse,
-                        timestamp = System.currentTimeMillis()
-                    )
-                    usuariosCollection.document(userId)
-                        .collection("messages")
-                        .add(botMessage)
-                        .await()
-                    return
-                }
-
-                // Obtener historial de mensajes (últimos 5 mensajes)
-                val messageHistory = usuariosCollection
-                    .document(userId)
+        try {
+            // Verificar si tenemos una respuesta en caché
+            val cachedResponse = getCachedResponse(content)
+            if (cachedResponse != null) {
+                val botMessage = Message(
+                    senderId = "bot_depresion",
+                    content = cachedResponse,
+                    timestamp = System.currentTimeMillis()
+                )
+                usuariosCollection.document(userId)
                     .collection("messages")
-                    .orderBy("timestamp", Query.Direction.DESCENDING)
-                    .limit(5)
-                    .get()
+                    .add(botMessage)
                     .await()
-                    .documents
-                    .mapNotNull { doc ->
-                        val messageObj = doc.toObject(Message::class.java)
-                        if (messageObj != null) {
-                            APIMessage(
-                                role = if (messageObj.senderId == userId) "user" else "assistant",
-                                content = messageObj.content
-                            )
-                        } else null
-                    }
-                    .reversed()
+                return
+            }
 
-                // Determinar si estamos en el flujo de introducción
-                val userMessages = messageHistory.count { it.role == "user" }
-                val isFirstUserMessage = userMessages == 1
-                val isSecondUserMessage = userMessages == 2
-
-                // Crear lista de mensajes para la API
-                val apiMessages = mutableListOf<APIMessage>().apply {
-                    // Agregar mensaje del sistema
-                    add(APIMessage(
-                        role = "system",
-                        content = OpenAIConfig.SYSTEM_PROMPT
-                    ))
-                    // Agregar historial de mensajes
-                    addAll(messageHistory)
+            // Obtener historial de mensajes (últimos 5 mensajes en lugar de 10)
+            val messageHistory = usuariosCollection
+                .document(userId)
+                .collection("messages")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(5)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { doc ->
+                    val messageObj = doc.toObject(Message::class.java)
+                    if (messageObj != null) {
+                        APIMessage(
+                            role = if (messageObj.senderId == userId) "user" else "assistant",
+                            content = messageObj.content
+                        )
+                    } else null
                 }
+                .reversed()
 
-                // Si es el primer mensaje del usuario (respuesta al nombre)
-                if (isFirstUserMessage) {
-                    val botResponse = "¡Hola $content! ¿Cuántos años tienes?"
-                    val botMessage = Message(
-                        senderId = "bot_depresion",
-                        content = botResponse,
-                        timestamp = System.currentTimeMillis()
-                    )
-                    usuariosCollection.document(userId)
-                        .collection("messages")
-                        .add(botMessage)
-                        .await()
-                    return
-                }
+            // Determinar si estamos en el flujo de introducción
+            val userMessages = messageHistory.count { it.role == "user" }
+            val isFirstUserMessage = userMessages == 1
+            val isSecondUserMessage = userMessages == 2
 
-                // Si es el segundo mensaje del usuario (respuesta a la edad)
-                if (isSecondUserMessage) {
-                    val botResponse = "Gracias por compartir eso conmigo. Soy Deppy, tu asistente de apoyo emocional. Estoy aquí para escucharte y ayudarte en lo que necesites. ¿Cómo te sientes hoy?"
-                    val botMessage = Message(
-                        senderId = "bot_depresion",
-                        content = botResponse,
-                        timestamp = System.currentTimeMillis()
-                    )
-                    usuariosCollection.document(userId)
-                        .collection("messages")
-                        .add(botMessage)
-                        .await()
-                    return
-                }
+            // Crear lista de mensajes para la API
+            val apiMessages = mutableListOf<APIMessage>().apply {
+                // Agregar mensaje del sistema
+                add(APIMessage(
+                    role = "system",
+                    content = OpenAIConfig.SYSTEM_PROMPT
+                ))
+                // Agregar historial de mensajes
+                addAll(messageHistory)
+            }
 
-                // Para el resto de la conversación, usar OpenAI con manejo de reintentos
-                val botResponse = makeOpenAIRequest(apiMessages)
-                
-                // Guardar la respuesta en caché
-                cacheResponse(content, botResponse)
-
-                // Enviar respuesta del bot
+            // Si es el primer mensaje del usuario (respuesta al nombre)
+            if (isFirstUserMessage) {
+                val botResponse = "¡Hola $content! ¿Cuántos años tienes?"
                 val botMessage = Message(
                     senderId = "bot_depresion",
                     content = botResponse,
                     timestamp = System.currentTimeMillis()
                 )
-
                 usuariosCollection.document(userId)
                     .collection("messages")
                     .add(botMessage)
                     .await()
+                return
+            }
 
-            } catch (e: Exception) {
-                Log.e(TAG, "Error al comunicarse con OpenAI", e)
-                // En caso de error, enviar mensaje de fallback
-                val errorMessage = Message(
+            // Si es el segundo mensaje del usuario (respuesta a la edad)
+            if (isSecondUserMessage) {
+                val botResponse = "Gracias por compartir eso conmigo. Soy Deppy, tu asistente de apoyo emocional. Estoy aquí para escucharte y ayudarte en lo que necesites. ¿Cómo te sientes hoy?"
+                val botMessage = Message(
                     senderId = "bot_depresion",
-                    content = "Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo en unos momentos. Error: ${e.message}",
+                    content = botResponse,
                     timestamp = System.currentTimeMillis()
                 )
-
                 usuariosCollection.document(userId)
                     .collection("messages")
-                    .add(errorMessage)
+                    .add(botMessage)
                     .await()
+                return
             }
+
+            // Para el resto de la conversación, usar OpenAI con manejo de reintentos
+            val botResponse = makeOpenAIRequest(apiMessages)
+            
+            // Guardar la respuesta en caché
+            cacheResponse(content, botResponse)
+
+            // Enviar respuesta del bot
+            val botMessage = Message(
+                senderId = "bot_depresion",
+                content = botResponse,
+                timestamp = System.currentTimeMillis()
+            )
+
+            usuariosCollection.document(userId)
+                .collection("messages")
+                .add(botMessage)
+                .await()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al comunicarse con OpenAI", e)
+            // En caso de error, enviar mensaje de fallback
+            val errorMessage = Message(
+                senderId = "bot_depresion",
+                content = "Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo en unos momentos. Error: ${e.message}",
+                timestamp = System.currentTimeMillis()
+            )
+
+            usuariosCollection.document(userId)
+                .collection("messages")
+                .add(errorMessage)
+                .await()
         }
     }
 
@@ -300,6 +297,85 @@ class FirebaseChatRepository(private val context: Context) {
             usuariosCollection.document(userId)
                 .collection("messages")
                 .add(welcomeMessage)
+                .await()
+        }
+    }
+
+    suspend fun processMessageWithoutSaving(userId: String, content: String) {
+        try {
+            // Obtener historial de mensajes (últimos 10 mensajes)
+            val messageHistory = usuariosCollection
+                .document(userId)
+                .collection("messages")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .limit(10)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { doc ->
+                    val message = doc.toObject(Message::class.java)
+                    if (message != null) {
+                        APIMessage(
+                            role = if (message.senderId == userId) "user" else "assistant",
+                            content = message.content
+                        )
+                    } else null
+                }
+                .reversed()
+
+            // Crear lista de mensajes para la API incluyendo el mensaje actual
+            val apiMessages = mutableListOf<APIMessage>().apply {
+                // Agregar mensaje del sistema
+                add(APIMessage(
+                    role = "system",
+                    content = OpenAIConfig.SYSTEM_PROMPT
+                ))
+                // Agregar historial de mensajes
+                addAll(messageHistory)
+                // Agregar el mensaje actual como contexto
+                add(APIMessage(
+                    role = "user",
+                    content = content
+                ))
+            }
+
+            // Usar OpenAI para generar respuesta
+            val chatRequest = ChatRequest(
+                model = OpenAIConfig.MODEL,
+                messages = apiMessages
+            )
+
+            Log.d(TAG, "Request a OpenAI: $chatRequest")
+            val response = openAIService.createChatCompletion(request = chatRequest)
+            Log.d(TAG, "Respuesta de OpenAI: $response")
+            
+            val botResponse = response.choices.firstOrNull()?.message?.content 
+                ?: "Lo siento, no pude procesar tu mensaje."
+
+            // Enviar solo la respuesta del bot
+            val botMessage = Message(
+                senderId = "bot_depresion",
+                content = botResponse,
+                timestamp = System.currentTimeMillis()
+            )
+
+            usuariosCollection.document(userId)
+                .collection("messages")
+                .add(botMessage)
+                .await()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al comunicarse con OpenAI", e)
+            // En caso de error, enviar mensaje de fallback
+            val errorMessage = Message(
+                senderId = "bot_depresion",
+                content = "Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo. Error: ${e.message}",
+                timestamp = System.currentTimeMillis()
+            )
+
+            usuariosCollection.document(userId)
+                .collection("messages")
+                .add(errorMessage)
                 .await()
         }
     }
