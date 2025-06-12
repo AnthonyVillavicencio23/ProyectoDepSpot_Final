@@ -3,6 +3,8 @@ package com.example.proyectodepspot
 import android.app.DatePickerDialog
 import android.graphics.Color
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -13,6 +15,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputLayout
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import java.text.SimpleDateFormat
@@ -124,15 +127,39 @@ class GestionarCuentaActivity : AppCompatActivity() {
             this,
             { _, selectedYear, selectedMonth, selectedDay ->
                 calendar.set(selectedYear, selectedMonth, selectedDay)
-                val formattedDate = dateFormatter.format(calendar.time)
-                updateField("fechaNacimiento", formattedDate) {
-                    fechaNacimientoTextView.text = formattedDate
+                val age = calculateAge(calendar.time)
+                
+                when {
+                    age < 13 -> {
+                        Toast.makeText(this, "Debes tener al menos 13 años", Toast.LENGTH_SHORT).show()
+                    }
+                    age > 18 -> {
+                        Toast.makeText(this, "Debes tener máximo 18 años", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        val formattedDate = dateFormatter.format(calendar.time)
+                        updateField("fechaNacimiento", formattedDate) {
+                            fechaNacimientoTextView.text = formattedDate
+                        }
+                    }
                 }
             },
             year,
             month,
             day
         ).show()
+    }
+
+    private fun calculateAge(birthDate: Date): Int {
+        val today = Calendar.getInstance()
+        val birthCalendar = Calendar.getInstance()
+        birthCalendar.time = birthDate
+
+        var age = today.get(Calendar.YEAR) - birthCalendar.get(Calendar.YEAR)
+        if (today.get(Calendar.DAY_OF_YEAR) < birthCalendar.get(Calendar.DAY_OF_YEAR)) {
+            age--
+        }
+        return age
     }
 
     private fun showEditPopup(title: String, currentValue: String, onSave: (String) -> Unit) {
@@ -154,7 +181,17 @@ class GestionarCuentaActivity : AppCompatActivity() {
 
         // Configurar campo de texto
         val editText = popupView.findViewById<EditText>(R.id.editText)
+        val textInputLayout = popupView.findViewById<TextInputLayout>(R.id.textInputLayout)
         editText.setText(currentValue)
+
+        // Agregar TextWatcher para limpiar errores
+        editText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                clearError(textInputLayout)
+            }
+        })
 
         // Configurar botones
         popupView.findViewById<MaterialButton>(R.id.cancelButton).setOnClickListener {
@@ -163,11 +200,9 @@ class GestionarCuentaActivity : AppCompatActivity() {
 
         popupView.findViewById<MaterialButton>(R.id.saveButton).setOnClickListener {
             val newValue = editText.text.toString().trim()
-            if (newValue.isNotEmpty()) {
+            if (validateField(title, newValue, textInputLayout)) {
                 onSave(newValue)
                 popupWindow.dismiss()
-            } else {
-                Toast.makeText(this, "El campo no puede estar vacío", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -207,6 +242,132 @@ class GestionarCuentaActivity : AppCompatActivity() {
         // Asegurarnos de que el popup tenga el estilo correcto
         popupWindow.setBackgroundDrawable(resources.getDrawable(android.R.color.transparent, theme))
         popupWindow.elevation = 8f
+    }
+
+    private fun validateField(fieldName: String, value: String, textInputLayout: TextInputLayout): Boolean {
+        return when (fieldName) {
+            "Nombre" -> validateNombre(value, textInputLayout)
+            "Apellido" -> validateApellido(value, textInputLayout)
+            "Nombre de usuario" -> validateUsername(value, textInputLayout)
+            "Teléfono" -> validateTelefono(value, textInputLayout)
+            "Correo electrónico" -> validateEmail(value, textInputLayout)
+            else -> true
+        }
+    }
+
+    private fun validateNombre(nombre: String, textInputLayout: TextInputLayout): Boolean {
+        return when {
+            nombre.isEmpty() -> {
+                textInputLayout.error = "El nombre es requerido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            nombre.length < 4 -> {
+                textInputLayout.error = "El nombre debe tener al menos 4 caracteres"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            !nombre.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
+                textInputLayout.error = "El nombre solo debe contener letras"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(textInputLayout)
+                true
+            }
+        }
+    }
+
+    private fun validateApellido(apellido: String, textInputLayout: TextInputLayout): Boolean {
+        return when {
+            apellido.isEmpty() -> {
+                textInputLayout.error = "El apellido es requerido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            apellido.length < 2 -> {
+                textInputLayout.error = "El apellido debe tener al menos 2 caracteres"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            !apellido.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
+                textInputLayout.error = "El apellido solo debe contener letras"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(textInputLayout)
+                true
+            }
+        }
+    }
+
+    private fun validateUsername(username: String, textInputLayout: TextInputLayout): Boolean {
+        return when {
+            username.isEmpty() -> {
+                textInputLayout.error = "El nombre de usuario es requerido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            username.length < 4 -> {
+                textInputLayout.error = "El nombre de usuario debe tener al menos 4 caracteres"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            !username.matches(Regex("^[a-zA-Z0-9_]+$")) -> {
+                textInputLayout.error = "El nombre de usuario solo puede contener letras, números y guiones bajos"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(textInputLayout)
+                true
+            }
+        }
+    }
+
+    private fun validateTelefono(telefono: String, textInputLayout: TextInputLayout): Boolean {
+        return when {
+            telefono.isEmpty() -> {
+                textInputLayout.error = "El teléfono es requerido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            !telefono.matches(Regex("^[0-9]{9}$")) -> {
+                textInputLayout.error = "El teléfono debe tener 9 dígitos"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(textInputLayout)
+                true
+            }
+        }
+    }
+
+    private fun validateEmail(email: String, textInputLayout: TextInputLayout): Boolean {
+        return when {
+            email.isEmpty() -> {
+                textInputLayout.error = "El correo electrónico es requerido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                textInputLayout.error = "Ingrese un correo electrónico válido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(textInputLayout)
+                true
+            }
+        }
+    }
+
+    private fun clearError(field: TextInputLayout) {
+        field.error = null
+        field.isErrorEnabled = false
     }
 
     private fun updateField(field: String, value: String, onSuccess: () -> Unit) {

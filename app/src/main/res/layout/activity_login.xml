@@ -19,7 +19,7 @@
                 android:layout_width="220dp"
                 android:layout_height="220dp"
                 android:layout_marginTop="64dp"
-                android:src="@drawable/icono_deppy"
+                android:src="@drawable/despierto2"
                 android:contentDescription="Logo DepSpot"
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/CircleImageView"

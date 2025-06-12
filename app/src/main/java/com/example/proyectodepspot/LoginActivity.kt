@@ -2,6 +2,8 @@ package com.example.proyectodepspot
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
@@ -30,10 +32,32 @@ class LoginActivity : AppCompatActivity() {
         }
 
         // Inicializar vistas
+        initializeViews()
+        setupTextChangeListeners()
+        setupLoginButton()
+        setupRegisterButton()
+    }
+
+    private fun initializeViews() {
         tilEmail = findViewById(R.id.tilEmail)
         tilPassword = findViewById(R.id.tilPassword)
+    }
 
-        // Configurar botón de inicio de sesión
+    private fun setupTextChangeListeners() {
+        val fields = listOf(tilEmail, tilPassword)
+
+        fields.forEach { field ->
+            field.editText?.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    clearError(field)
+                }
+            })
+        }
+    }
+
+    private fun setupLoginButton() {
         findViewById<MaterialButton>(R.id.btnLogin).setOnClickListener {
             if (validateFields()) {
                 val email = tilEmail.editText?.text.toString()
@@ -46,12 +70,22 @@ class LoginActivity : AppCompatActivity() {
                             checkEmergencyContacts()
                         } else {
                             val errorMessage = when {
-                                task.exception?.message?.contains("password") == true -> 
-                                    "La contraseña debe tener al menos 6 caracteres"
-                                task.exception?.message?.contains("no user record") == true -> 
+                                task.exception?.message?.contains("password") == true || 
+                                task.exception?.message?.contains("malformed") == true -> {
+                                    tilPassword.error = "La contraseña no pertenece a este correo"
+                                    tilPassword.isErrorEnabled = true
+                                    "La contraseña no pertenece a este correo"
+                                }
+                                task.exception?.message?.contains("no user record") == true -> {
+                                    tilEmail.error = "No existe una cuenta con este correo electrónico"
+                                    tilEmail.isErrorEnabled = true
                                     "No existe una cuenta con este correo electrónico"
-                                task.exception?.message?.contains("badly formatted") == true -> 
+                                }
+                                task.exception?.message?.contains("badly formatted") == true -> {
+                                    tilEmail.error = "El formato del correo electrónico no es válido"
+                                    tilEmail.isErrorEnabled = true
                                     "El formato del correo electrónico no es válido"
+                                }
                                 else -> "Error al iniciar sesión: ${task.exception?.message}"
                             }
                             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
@@ -59,8 +93,9 @@ class LoginActivity : AppCompatActivity() {
                     }
             }
         }
+    }
 
-        // Configurar botón de registro
+    private fun setupRegisterButton() {
         findViewById<MaterialButton>(R.id.btnRegister).setOnClickListener {
             startActivity(Intent(this, RegistroActivity::class.java))
         }
@@ -94,25 +129,52 @@ class LoginActivity : AppCompatActivity() {
         val email = tilEmail.editText?.text.toString()
         val password = tilPassword.editText?.text.toString()
 
-        var isValid = true
+        val isEmailValid = validateEmail(email)
+        val isPasswordValid = validatePassword(password)
 
-        if (email.isEmpty()) {
-            tilEmail.error = "El correo electrónico es requerido"
-            isValid = false
-        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            tilEmail.error = "Ingrese un correo electrónico válido"
-            isValid = false
-        } else {
-            tilEmail.error = null
+        return isEmailValid && isPasswordValid
+    }
+
+    private fun clearError(field: TextInputLayout) {
+        field.error = null
+        field.isErrorEnabled = false
+    }
+
+    private fun validateEmail(email: String): Boolean {
+        return when {
+            email.isEmpty() -> {
+                tilEmail.error = "El correo electrónico es requerido"
+                tilEmail.isErrorEnabled = true
+                false
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                tilEmail.error = "Ingrese un correo electrónico válido"
+                tilEmail.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilEmail)
+                true
+            }
         }
+    }
 
-        if (password.isEmpty()) {
-            tilPassword.error = "La contraseña es requerida"
-            isValid = false
-        } else {
-            tilPassword.error = null
+    private fun validatePassword(password: String): Boolean {
+        return when {
+            password.isEmpty() -> {
+                tilPassword.error = "La contraseña es requerida"
+                tilPassword.isErrorEnabled = true
+                false
+            }
+            password.length < 6 -> {
+                tilPassword.error = "La contraseña debe tener al menos 6 caracteres"
+                tilPassword.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilPassword)
+                true
+            }
         }
-
-        return isValid
     }
 } 

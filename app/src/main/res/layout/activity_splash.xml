@@ -9,7 +9,7 @@
         android:id="@+id/ivLogo"
         android:layout_width="220dp"
         android:layout_height="220dp"
-        android:src="@drawable/icono_deppy"
+        android:src="@drawable/dormido2"
         android:contentDescription="Logo DepSpot"
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/CircleImageView"

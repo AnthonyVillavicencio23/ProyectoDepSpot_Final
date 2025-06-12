@@ -10,7 +10,7 @@
         android:id="@+id/botIcon"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:src="@drawable/icono_deppy"
+        android:src="@drawable/despierto2"
         android:visibility="gone"
         android:layout_marginStart="1dp"
         android:background="@drawable/bg_emotion_circle"

@@ -3,6 +3,8 @@ package com.example.proyectodepspot
 import android.app.Dialog
 import android.graphics.Color
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.PopupWindow
@@ -16,6 +18,7 @@ import com.example.proyectodepspot.data.ContactoApoyo
 import com.example.proyectodepspot.data.ContactosRepository
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import com.google.android.material.button.MaterialButton
 import android.view.View
 import android.widget.TextView
@@ -99,6 +102,12 @@ class RedApoyoActivity : AppCompatActivity() {
         // Configurar campos
         val editTextNombre = popupView.findViewById<TextInputEditText>(R.id.editTextNombre)
         val editTextCorreo = popupView.findViewById<TextInputEditText>(R.id.editTextCorreo)
+        val tilNombre = popupView.findViewById<TextInputLayout>(R.id.tilNombre)
+        val tilCorreo = popupView.findViewById<TextInputLayout>(R.id.tilCorreo)
+
+        // Configurar TextWatchers para limpiar errores
+        setupTextWatcher(editTextNombre, tilNombre)
+        setupTextWatcher(editTextCorreo, tilCorreo)
 
         // Configurar botones
         popupView.findViewById<MaterialButton>(R.id.buttonCancelar).setOnClickListener {
@@ -109,16 +118,17 @@ class RedApoyoActivity : AppCompatActivity() {
             val nombre = editTextNombre.text.toString().trim()
             val correo = editTextCorreo.text.toString().trim()
 
-            if (nombre.isNotEmpty() && correo.isNotEmpty()) {
+            val isNombreValid = validateNombre(nombre, tilNombre)
+            val isCorreoValid = validateEmail(correo, tilCorreo)
+
+            if (isNombreValid && isCorreoValid) {
                 lifecycleScope.launch {
                     val contacto = ContactoApoyo(nombre = nombre, correo = correo)
                     guardarContacto(contacto)
                     popupWindow.dismiss()
                 }
-                } else {
-                Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
-                }
             }
+        }
 
         // Crear un fondo oscuro
         val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
@@ -188,9 +198,15 @@ class RedApoyoActivity : AppCompatActivity() {
         // Configurar campos
         val editTextNombre = popupView.findViewById<TextInputEditText>(R.id.editTextNombre)
         val editTextCorreo = popupView.findViewById<TextInputEditText>(R.id.editTextCorreo)
+        val tilNombre = popupView.findViewById<TextInputLayout>(R.id.tilNombre)
+        val tilCorreo = popupView.findViewById<TextInputLayout>(R.id.tilCorreo)
 
         editTextNombre.setText(contacto.nombre)
         editTextCorreo.setText(contacto.correo)
+
+        // Configurar TextWatchers para limpiar errores
+        setupTextWatcher(editTextNombre, tilNombre)
+        setupTextWatcher(editTextCorreo, tilCorreo)
 
         // Configurar botones
         popupView.findViewById<MaterialButton>(R.id.buttonCancelar).setOnClickListener {
@@ -201,16 +217,17 @@ class RedApoyoActivity : AppCompatActivity() {
             val nombre = editTextNombre.text.toString().trim()
             val correo = editTextCorreo.text.toString().trim()
 
-            if (nombre.isNotEmpty() && correo.isNotEmpty()) {
+            val isNombreValid = validateNombre(nombre, tilNombre)
+            val isCorreoValid = validateEmail(correo, tilCorreo)
+
+            if (isNombreValid && isCorreoValid) {
                 lifecycleScope.launch {
                     val contactoActualizado = contacto.copy(nombre = nombre, correo = correo)
                     guardarContacto(contactoActualizado)
                     popupWindow.dismiss()
                 }
-                } else {
-                Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
-                }
             }
+        }
 
         // Crear un fondo oscuro
         val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
@@ -248,6 +265,64 @@ class RedApoyoActivity : AppCompatActivity() {
         // Asegurarnos de que el popup tenga el estilo correcto
         popupWindow.setBackgroundDrawable(resources.getDrawable(android.R.color.transparent, theme))
         popupWindow.elevation = 8f
+    }
+
+    private fun setupTextWatcher(editText: TextInputEditText, textInputLayout: TextInputLayout) {
+        editText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                clearError(textInputLayout)
+            }
+        })
+    }
+
+    private fun validateNombre(nombre: String, textInputLayout: TextInputLayout): Boolean {
+        return when {
+            nombre.isEmpty() -> {
+                textInputLayout.error = "El nombre es requerido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            nombre.length < 4 -> {
+                textInputLayout.error = "El nombre debe tener al menos 4 caracteres"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            !nombre.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
+                textInputLayout.error = "El nombre solo debe contener letras"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(textInputLayout)
+                true
+            }
+        }
+    }
+
+    private fun validateEmail(email: String, textInputLayout: TextInputLayout): Boolean {
+        return when {
+            email.isEmpty() -> {
+                textInputLayout.error = "El correo electrónico es requerido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                textInputLayout.error = "Ingrese un correo electrónico válido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(textInputLayout)
+                true
+            }
+        }
+    }
+
+    private fun clearError(field: TextInputLayout) {
+        field.error = null
+        field.isErrorEnabled = false
     }
 
     private fun guardarContacto(contacto: ContactoApoyo) {
