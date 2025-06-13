@@ -27,6 +27,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
     private lateinit var textViewResumen: TextView
     private lateinit var textViewTitulo: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var btnActualizar: Button
     private var esDesafioIA: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,6 +39,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
         textViewResumen = findViewById(R.id.textViewResumen)
         textViewTitulo = findViewById(R.id.textViewTitulo)
         progressBar = findViewById(R.id.progressBar)
+        btnActualizar = findViewById(R.id.btnActualizar)
 
         esDesafioIA = intent.getBooleanExtra("es_desafio_ia", false)
         textViewTitulo.text = if (esDesafioIA) "Resumen de Desafíos Personalizados" else "Resumen de Desafíos Diarios"
@@ -49,7 +51,17 @@ class ResumenDesafiosActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
         setupBottomNavigation()
+        setupActualizarButton()
         cargarResumenSemana()
+    }
+
+    private fun setupActualizarButton() {
+        btnActualizar.setOnClickListener {
+            btnActualizar.visibility = View.GONE
+            textViewResumen.text = "Cargando resumen..."
+            progressBar.visibility = View.VISIBLE
+            cargarResumenSemana()
+        }
     }
 
     private fun getPeruDate(): String {
@@ -242,8 +254,28 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                 android.util.Log.d("ResumenDesafios", "Desafíos del par completado: ${parCompletado.size}")
 
                 // Generar resumen con GPT
-                val resumen = generarResumenGPT(parCompletado)
-                android.util.Log.d("ResumenDesafios", "Resumen generado: $resumen")
+                val resumen = try {
+                    generarResumenGPT(parCompletado)
+                } catch (e: Exception) {
+                    android.util.Log.e("ResumenDesafios", "Error al generar resumen: ${e.message}")
+                    if (e.message?.contains("429") == true) {
+                        withContext(Dispatchers.Main) {
+                            textViewResumen.text = "Lo sentimos, hemos alcanzado el límite de solicitudes. Por favor, intenta nuevamente en unos minutos."
+                            progressBar.visibility = View.GONE
+                            btnActualizar.visibility = View.VISIBLE
+                        }
+                        return@launch
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            textViewResumen.text = "Lo sentimos, hubo un error al generar el resumen. Por favor, intenta nuevamente más tarde."
+                            progressBar.visibility = View.GONE
+                            btnActualizar.visibility = View.VISIBLE
+                        }
+                        return@launch
+                    }
+                }
+
+                android.util.Log.d("ResumenDesafios", "Resumen generado exitosamente")
 
                 // Guardar el resumen generado con las fechas del par
                 val fechasPar = parCompletado.map { it["fecha"] as String }
@@ -276,7 +308,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
     }
 
     private suspend fun generarResumenGPT(desafios: List<Map<String, Any>>): String {
-        val prompt = """Analiza los siguientes desafíos de los últimos 2 días y genera un resumen ameno y motivador.
+        val prompt = """Analiza los siguientes desafíos de los últimos 2 días y genera un resumen motivador.
             Incluye:
             1. Un resumen general del período. Menciona los desafios claramente no importa si se completaron (máximo 4 líneas)
             2. Puntos fuertes y áreas de mejora (máximo 3 líneas)
@@ -286,12 +318,12 @@ class ResumenDesafiosActivity : AppCompatActivity() {
             ${formatearDesafiosParaGPT(desafios)}
             
             IMPORTANTE: 
-            - Responde en un tono amigable y motivador, como si fueras un compañero.
+            - Responde en un tono amigable, como si fueras un compañero.
             - Estructura tu respuesta en 3 párrafos separados, cada uno con su etiqueta:
-              Parrafo1: [aquí el resumen general del período]
-              Parrafo2: [aquí los puntos fuertes y áreas de mejora]
-              Parrafo3: [aquí las sugerencias para los próximos días]
-            - Cada párrafo debe ser conciso y directo, máximo 3 líneas.
+              Parrafo1: [texto]
+              Parrafo2: [texto]
+              Parrafo3: [texto]
+            - Cada párrafo debe ser conciso.
             - NO uses comillas ni llaves en el texto
             - El objeto JSON debe tener el nombre "resumen"."""
 
@@ -300,19 +332,12 @@ class ResumenDesafiosActivity : AppCompatActivity() {
             android.util.Log.d("ResumenDesafios", "Respuesta GPT: $respuesta")
             
             // Parsear el JSON anidado
-            val jsonObject = JSONObject(respuesta)
+            val resumenJson = JSONObject(respuesta)
+            val resumen = resumenJson.getJSONObject("resumen")
             
-            // Intentar obtener el objeto con diferentes nombres posibles
-            val respuestaObj = when {
-                jsonObject.has("resumen") -> jsonObject.getJSONObject("resumen")
-                jsonObject.has("respuesta") -> jsonObject.getJSONObject("respuesta")
-                jsonObject.has("resultado") -> jsonObject.getJSONObject("resultado")
-                else -> jsonObject // Si no encuentra ninguno, usar el objeto raíz
-            }
-            
-            val parrafo1 = respuestaObj.optString("Parrafo1", "").trim()
-            val parrafo2 = respuestaObj.optString("Parrafo2", "").trim()
-            val parrafo3 = respuestaObj.optString("Parrafo3", "").trim()
+            val parrafo1 = resumen.getString("Parrafo1")
+            val parrafo2 = resumen.getString("Parrafo2")
+            val parrafo3 = resumen.getString("Parrafo3")
             
             android.util.Log.d("ResumenDesafios", "Párrafo 1: $parrafo1")
             android.util.Log.d("ResumenDesafios", "Párrafo 2: $parrafo2")
@@ -325,7 +350,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
             textoFinal
         } catch (e: Exception) {
             android.util.Log.e("ResumenDesafios", "Error: ${e.message}", e)
-            "Error al generar el resumen: ${e.message}"
+            throw e // Re-lanzamos la excepción para manejarla en el nivel superior
         }
     }
 

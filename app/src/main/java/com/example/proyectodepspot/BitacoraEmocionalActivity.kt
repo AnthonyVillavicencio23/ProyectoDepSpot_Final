@@ -160,10 +160,18 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
             .addOnSuccessListener { document ->
                 if (document.exists()) {
                     val desafioIA = DesafioIA.fromMap(document.data ?: return@addOnSuccessListener)
+                    // Si el desafío existe y no está en espera, mostrarlo
+                    if (desafioIA.desafio != "En espera") {
                     mostrarDesafioIA(desafioIA.fraseMotivadora, desafioIA.desafio)
-                    btnCompletadoIA.isEnabled = !desafioIA.completado && desafioIA.desafio != "En espera"
+                        btnCompletadoIA.isEnabled = !desafioIA.completado
+                    } else {
+                        // Si está en espera, generar nuevo desafío
+                        generarDesafioIA()
+                    }
                 } else {
-                    // Generar nuevo desafío automáticamente
+                    // Si no existe documento para hoy, inicializar con estado "En espera"
+                    reiniciarDesafioIA(userId, fechaActual)
+                    // Y luego generar el desafío
                     generarDesafioIA()
                 }
             }
@@ -219,6 +227,26 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
         val userId = auth.currentUser?.uid ?: return
         val fechaActual = getPeruDate()
 
+        // Verificar si ya existe un desafío para hoy que no esté en espera
+        db.collection("usuarios")
+            .document(userId)
+            .collection("desafios")
+            .document("ultimo_desafio_ia")
+            .collection(fechaActual)
+            .document("desafio")
+            .get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val desafioIA = DesafioIA.fromMap(document.data ?: return@addOnSuccessListener)
+                    if (desafioIA.desafio != "En espera") {
+                        // Si ya existe un desafío válido para hoy, mostrarlo
+                        mostrarDesafioIA(desafioIA.fraseMotivadora, desafioIA.desafio)
+                        btnCompletadoIA.isEnabled = !desafioIA.completado
+                        return@addOnSuccessListener
+                    }
+                }
+                
+                // Si no existe o está en espera, generar nuevo desafío
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 // Obtener desafíos anteriores
@@ -307,6 +335,9 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
                     Toast.makeText(this@BitacoraEmocionalActivity, 
                         "Error al generar el desafío: ${e.message}", 
                         Toast.LENGTH_LONG).show()
+                            // En caso de error, mantener el estado "En espera"
+                            reiniciarDesafioIA(userId, fechaActual)
+                        }
                 }
             }
         }

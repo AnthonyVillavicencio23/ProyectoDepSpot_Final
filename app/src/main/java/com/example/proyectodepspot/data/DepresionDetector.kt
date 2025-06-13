@@ -22,12 +22,28 @@ class DepresionDetector(private val context: Context) {
     private val auth = FirebaseAuth.getInstance()
     private val suicideClassifier = SuicideClassifier(context)
     
-    // Palabras clave que podrían indicar depresión
-    private val palabrasDepresivas = setOf(
-        "triste", "tristeza", "deprimido", "depresión", "suicidio", "morir",
-        "muerte", "sin esperanza", "sin sentido", "vacío", "solo", "solitario",
-        "desesperado", "desesperación", "no puedo más", "quiero desaparecer",
-        "no quiero vivir", "me quiero morir", "no tengo ganas", "no tengo fuerzas"
+    // Frases clave que podrían indicar depresión
+    private val frasesDepresivas = setOf(
+        "me siento triste",
+        "estoy deprimido",
+        "tengo depresión",
+        "pienso en el suicidio",
+        "quiero morir",
+        "no quiero vivir",
+        "me siento sin esperanza",
+        "todo es sin sentido",
+        "me siento vacío",
+        "me siento solo",
+        "me siento solitario",
+        "estoy desesperado",
+        "me siento desesperado",
+        "no puedo más",
+        "quiero desaparecer",
+        "no tengo ganas de nada",
+        "no tengo fuerzas",
+        "me siento abrumado",
+        "no veo salida",
+        "todo es oscuro"
     )
 
     // Interfaz para la API de Resend
@@ -69,24 +85,24 @@ class DepresionDetector(private val context: Context) {
         
         Log.d(TAG, "Analizando mensaje: $mensajeLower")
         
-        // Verificar si el mensaje contiene palabras depresivas
-        val palabrasEncontradas = palabrasDepresivas.filter { palabra ->
-            mensajeLower.contains(palabra)
+        // Verificar si el mensaje contiene frases depresivas
+        val frasesEncontradas = frasesDepresivas.filter { frase ->
+            mensajeLower.contains(frase)
         }
 
         // Obtener la probabilidad de que el mensaje sea suicida usando el clasificador
         val probabilidadSuicida = suicideClassifier.classifyMessage(mensaje)
         Log.d(TAG, "Probabilidad de suicidio: $probabilidadSuicida")
 
-        // Si hay palabras depresivas o la probabilidad de suicidio es alta, enviar alerta
-        if (palabrasEncontradas.isNotEmpty() || probabilidadSuicida > 0.7) {
-            Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Palabras encontradas: $palabrasEncontradas, Probabilidad de suicidio: $probabilidadSuicida")
+        // Si hay frases depresivas o la probabilidad de suicidio es alta, enviar alerta
+        if (frasesEncontradas.isNotEmpty() || probabilidadSuicida > 0.8) {
+            Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Frases encontradas: $frasesEncontradas, Probabilidad de suicidio: $probabilidadSuicida")
             
             // Actualizar el contador de detecciones
             actualizarContadorDetecciones(userId)
             
             // Enviar alerta a contactos
-            enviarAlertaContactos(userId, palabrasEncontradas, probabilidadSuicida)
+            enviarAlertaContactos(userId, frasesEncontradas, probabilidadSuicida)
         } else {
             Log.d(TAG, "No se detectaron signos depresivos en el mensaje")
         }
@@ -146,7 +162,7 @@ class DepresionDetector(private val context: Context) {
         }
     }
 
-    private suspend fun enviarAlertaContactos(userId: String, palabrasEncontradas: List<String>, probabilidadSuicida: Double) {
+    private suspend fun enviarAlertaContactos(userId: String, frasesEncontradas: List<String>, probabilidadSuicida: Double) {
         try {
             Log.d(TAG, "Buscando contactos de apoyo para el usuario: $userId")
             
@@ -248,7 +264,7 @@ class DepresionDetector(private val context: Context) {
                                     <h3>Detalles de la Situación:</h3>
                                     <ul>
                                         <li>Usuario: ${userEmail}</li>
-                                        <li>Palabras detectadas: ${palabrasEncontradas.joinToString(", ")}</li>
+                                        <li>Frases detectadas: ${frasesEncontradas.joinToString(", ")}</li>
                                         <li>Probabilidad de riesgo suicida: ${String.format("%.2f", probabilidadSuicida * 100)}%</li>
                                     </ul>
                                 </div>
@@ -279,7 +295,7 @@ class DepresionDetector(private val context: Context) {
 
                     // Enviar el correo usando Resend
                     val response = resendService.sendEmail(
-                        apiKey = "X",
+                        apiKey = "x",
                         emailRequest = emailRequest
                     )
 

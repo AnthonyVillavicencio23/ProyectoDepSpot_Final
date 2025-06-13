@@ -6,6 +6,7 @@ import com.example.proyectodepspot.api.OpenAIConfig
 import com.example.proyectodepspot.api.OpenAIService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import kotlinx.coroutines.delay
 
 object GPT4Service {
     private val openAIService = Retrofit.Builder()
@@ -14,7 +15,17 @@ object GPT4Service {
         .build()
         .create(OpenAIService::class.java)
 
+    private var lastRequestTime = 0L
+    private val minRequestInterval = 2000L // 2 segundos entre solicitudes
+
     suspend fun generateResponse(prompt: String): String {
+        // Esperar si es necesario para respetar el límite de rate
+        val currentTime = System.currentTimeMillis()
+        val timeSinceLastRequest = currentTime - lastRequestTime
+        if (timeSinceLastRequest < minRequestInterval) {
+            delay(minRequestInterval - timeSinceLastRequest)
+        }
+
         val messages = listOf(
             Message(
                 role = "system",
@@ -35,6 +46,7 @@ object GPT4Service {
 
         return try {
             val response = openAIService.createChatCompletion(request = chatRequest)
+            lastRequestTime = System.currentTimeMillis()
             val content = response.choices.firstOrNull()?.message?.content 
                 ?: throw Exception("No se recibió respuesta de la API")
             
@@ -49,7 +61,8 @@ object GPT4Service {
                 }
             }
         } catch (e: Exception) {
-            throw Exception("Error al llamar a la API de GPT-4: ${e.message}")
+            // No registramos el error aquí, dejamos que el llamador lo maneje
+            throw e
         }
     }
 } 

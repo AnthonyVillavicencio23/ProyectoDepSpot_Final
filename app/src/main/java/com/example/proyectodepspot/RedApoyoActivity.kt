@@ -127,8 +127,8 @@ class RedApoyoActivity : AppCompatActivity() {
                     guardarContacto(contacto)
                     popupWindow.dismiss()
                 }
+                }
             }
-        }
 
         // Crear un fondo oscuro
         val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)
@@ -226,8 +226,8 @@ class RedApoyoActivity : AppCompatActivity() {
                     guardarContacto(contactoActualizado)
                     popupWindow.dismiss()
                 }
+                }
             }
-        }
 
         // Crear un fondo oscuro
         val rootView = window.decorView.findViewById<ViewGroup>(android.R.id.content)

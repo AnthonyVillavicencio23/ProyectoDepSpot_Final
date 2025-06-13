@@ -66,11 +66,11 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                    android:text="Cargando resumen..."
-                    android:textColor="@color/black"
-                    android:textSize="16sp"
-                    android:lineSpacingExtra="8dp"
-                    android:fontFamily="sans-serif-light" />
+                        android:text="Cargando resumen..."
+                        android:textColor="@color/black"
+                        android:textSize="16sp"
+                        android:lineSpacingExtra="8dp"
+                        android:fontFamily="sans-serif-light" />
 
                     <ProgressBar
                         android:id="@+id/progressBar"
@@ -80,6 +80,15 @@
                         android:indeterminateTint="?attr/colorPrimary" />
 
                 </LinearLayout>
+
+                <Button
+                    android:id="@+id/btnActualizar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="16dp"
+                    android:text="Actualizar"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
