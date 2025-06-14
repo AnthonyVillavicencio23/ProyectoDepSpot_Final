@@ -59,12 +59,16 @@
             android:layout_weight="1"
             android:background="@drawable/chat_input_background"
             android:hint="Escribe un mensaje..."
-            android:inputType="textMultiLine"
+            android:inputType="textMultiLine|textCapSentences"
             android:maxLines="4"
             android:padding="12dp"
             android:layout_marginHorizontal="8dp"
             android:textColorHint="#757575"
-            android:textColor="#212121" />
+            android:textColor="#212121"
+            android:imeOptions="actionSend"
+            android:imeActionLabel="Enviar"
+            android:languageTag="es"
+            android:importantForAutofill="no" />
 
         <ImageButton
             android:id="@+id/sendButton"

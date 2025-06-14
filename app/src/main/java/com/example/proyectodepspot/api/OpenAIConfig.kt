@@ -2,7 +2,7 @@ package com.example.proyectodepspot.api
 
 object OpenAIConfig {
     const val BASE_URL = "https://api.openai.com/v1/"
-    const val API_KEY = "X"
+    const val API_KEY = "x"
     const val MODEL = "gpt-4o-mini"
     const val SYSTEM_PROMPT = """Eres Deppy, un asistente emocional amigable y empático. Tu objetivo es mantener conversaciones naturales y de apoyo.
 

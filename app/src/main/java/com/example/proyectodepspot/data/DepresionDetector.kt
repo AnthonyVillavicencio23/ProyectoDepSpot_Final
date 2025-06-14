@@ -85,26 +85,43 @@ class DepresionDetector(private val context: Context) {
         
         Log.d(TAG, "Analizando mensaje: $mensajeLower")
         
-        // Verificar si el mensaje contiene frases depresivas
-        val frasesEncontradas = frasesDepresivas.filter { frase ->
-            mensajeLower.contains(frase)
-        }
+        try {
+            // Obtener la probabilidad de que el mensaje sea suicida usando el clasificador
+            val probabilidadSuicida = suicideClassifier.classifyMessage(mensaje)
+            Log.d(TAG, "Probabilidad de suicidio: $probabilidadSuicida")
 
-        // Obtener la probabilidad de que el mensaje sea suicida usando el clasificador
-        val probabilidadSuicida = suicideClassifier.classifyMessage(mensaje)
-        Log.d(TAG, "Probabilidad de suicidio: $probabilidadSuicida")
+            // Si la probabilidad es alta (GPT-4 dijo SI o el análisis local es muy alto)
+            if (probabilidadSuicida > 0.8) {
+                Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Probabilidad de suicidio: $probabilidadSuicida")
+                
+                // Actualizar el contador de detecciones
+                actualizarContadorDetecciones(userId)
+                
+                // Enviar alerta a contactos
+                enviarAlertaContactos(userId, emptyList(), probabilidadSuicida)
+            } else {
+                Log.d(TAG, "No se detectaron signos depresivos en el mensaje")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al analizar mensaje con GPT-4, usando análisis local como respaldo", e)
+            
+            // Verificar si el mensaje contiene frases depresivas (solo como respaldo)
+            val frasesEncontradas = frasesDepresivas.filter { frase ->
+                mensajeLower.contains(frase)
+            }
 
-        // Si hay frases depresivas o la probabilidad de suicidio es alta, enviar alerta
-        if (frasesEncontradas.isNotEmpty() || probabilidadSuicida > 0.8) {
-            Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Frases encontradas: $frasesEncontradas, Probabilidad de suicidio: $probabilidadSuicida")
-            
-            // Actualizar el contador de detecciones
-            actualizarContadorDetecciones(userId)
-            
-            // Enviar alerta a contactos
-            enviarAlertaContactos(userId, frasesEncontradas, probabilidadSuicida)
-        } else {
-            Log.d(TAG, "No se detectaron signos depresivos en el mensaje")
+            // Si hay frases depresivas, enviar alerta
+            if (frasesEncontradas.isNotEmpty()) {
+                Log.d(TAG, "Se detectaron signos depresivos en el mensaje (análisis local). Frases encontradas: $frasesEncontradas")
+                
+                // Actualizar el contador de detecciones
+                actualizarContadorDetecciones(userId)
+                
+                // Enviar alerta a contactos
+                enviarAlertaContactos(userId, frasesEncontradas, 0.7)
+            } else {
+                Log.d(TAG, "No se detectaron signos depresivos en el mensaje (análisis local)")
+            }
         }
     }
 
@@ -295,7 +312,7 @@ class DepresionDetector(private val context: Context) {
 
                     // Enviar el correo usando Resend
                     val response = resendService.sendEmail(
-                        apiKey = "x",
+                        apiKey = "X",
                         emailRequest = emailRequest
                     )
 

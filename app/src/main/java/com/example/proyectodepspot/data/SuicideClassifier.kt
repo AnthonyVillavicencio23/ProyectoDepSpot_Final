@@ -186,8 +186,8 @@ class SuicideClassifier(private val context: Context) {
 
     private suspend fun consultarGPT4(message: String): Boolean {
         val systemPrompt = """
-            Eres un asistente especializado en detectar signos de depresión y pensamientos suicidas.
-            Analiza el siguiente mensaje y responde SOLO con "SI" si detectas signos claros de depresión o pensamientos suicidas,
+            Eres un asistente especializado en detectar signos de depresión y pensamientos suicidas. Analiza bien las negaciones y frase del usuario.
+            Analiza el siguiente mensaje y responde SOLO con "SI" si detectas signos claros de depresión,
             o "NO" si no detectas estos signos. No incluyas ninguna otra explicación o texto.
         """.trimIndent()
 
