@@ -265,34 +265,7 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
                     }
                 }
 
-                val prompt = """Genera un desafío motivador y variado para el día de hoy. 
-                    El desafío debe ser simple pero significativo para el bienestar emocional.
-                    
-                    REGLAS IMPORTANTES:
-                    1. El desafío debe ser COMPLETAMENTE DIFERENTE a estos desafíos anteriores:
-                    ${desafiosAnteriores.joinToString("\n")}
-                    
-                    2. NO hagas variaciones del mismo tipo de actividad.
-                    3. Cada desafío debe ser único y no relacionado con otros.
-                    
-                    Ejemplos de desafíos diversos (NO uses estos, solo son ejemplos):
-                    - "Prepara una comida saludable que nunca hayas cocinado antes"
-                    - "Aprende a tocar una canción simple en un instrumento musical"
-                    - "Dedica 20 minutos a dibujar o pintar algo que te inspire"
-                    - "Investiga sobre un tema que te interese y comparte lo aprendido"
-                    - "Organiza un espacio de tu casa y dona lo que no uses"
-                    - "Practica un nuevo idioma durante 15 minutos"
-                    - "Planta una semilla y cuídala durante la semana"
-                    
-                    IMPORTANTE: 
-                    1. Responde SOLO con un objeto JSON que tenga exactamente esta estructura:
-                    {
-                        "frase_motivadora": "una frase corta motivadora aquí",
-                        "desafio": "el desafío específico aquí"
-                    }
-                    2. No incluyas ningún otro texto antes o después del JSON.
-                    3. Asegúrate de que el desafío sea realizable en un día.
-                    4. El desafío debe ser completamente diferente a los desafíos anteriores listados."""
+                val prompt = """Genera un desafío motivador para el adolescente, simple pero útil para el bienestar emocional. Debe ser distinto de estos anteriores:\n${desafiosAnteriores.joinToString("\n")}\nEvita repetir tipo de actividad, cada desafio es original y no se relaciona con otro. Ejemplo: (no uses estos)\n- Prepara una comida nunca antes hecha\n- Aprende una canción\n- Dibuja algo inspirador para ti\n\nResponde SOLO con este JSON:\n{\n"frase_motivadora": "frase corta motivadora",\n"desafio": "desafío especifico aquí, realizable en un día, diferente a los anteriores.No incluyas ningún otro texto antes o después del JSON"\n}"""
 
                 val response = GPT4Service.generateResponse(prompt)
                 val jsonResponse = JSONObject(response)

@@ -29,9 +29,7 @@ object GPT4Service {
         val messages = listOf(
             Message(
                 role = "system",
-                content = """Eres un asistente especializado en generar desafíos personalizados para mejorar el bienestar emocional.
-                    IMPORTANTE: Cuando te pidan generar un desafío, responde SOLO con un objeto JSON válido.
-                    No incluyas ningún otro texto, explicaciones o comentarios."""
+                content = """Eres un asistente experto que genera desafíos personalizados para el bienestar emocional y lidiar con la depresión.\nCuando te pidan un desafío, responde SOLO con un JSON válido.\nNo agregues texto, explicaciones ni comentarios extras."""
             ),
             Message(
                 role = "user",
@@ -41,7 +39,8 @@ object GPT4Service {
 
         val chatRequest = ChatRequest(
             model = OpenAIConfig.MODEL,
-            messages = messages
+            messages = messages,
+            store = true
         )
 
         return try {

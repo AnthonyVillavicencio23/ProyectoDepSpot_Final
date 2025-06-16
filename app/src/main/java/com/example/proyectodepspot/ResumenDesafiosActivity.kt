@@ -308,24 +308,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
     }
 
     private suspend fun generarResumenGPT(desafios: List<Map<String, Any>>): String {
-        val prompt = """Analiza los siguientes desafíos de los últimos 2 días y genera un resumen motivador.
-            Incluye:
-            1. Un resumen general del período. Menciona los desafios claramente no importa si se completaron (máximo 4 líneas)
-            2. Puntos fuertes y áreas de mejora (máximo 3 líneas)
-            3. Sugerencias para los próximos días (máximo 3 líneas)
-            
-            Desafíos del período:
-            ${formatearDesafiosParaGPT(desafios)}
-            
-            IMPORTANTE: 
-            - Responde en un tono amigable, como si fueras un compañero.
-            - Estructura tu respuesta en 3 párrafos separados, cada uno con su etiqueta:
-              Parrafo1: [texto]
-              Parrafo2: [texto]
-              Parrafo3: [texto]
-            - Cada párrafo debe ser conciso.
-            - NO uses comillas ni llaves en el texto
-            - El objeto JSON debe tener el nombre "resumen"."""
+        val prompt = """Analiza estos desafíos de los últimos 2 días:\n${formatearDesafiosParaGPT(desafios)}\n\nHabla como un compañero amistoso y genera un resumen motivador para el adolescente dividido en 3 partes:\nParrafo1: resumen general (menciona los desafíos claramente, aun si no los completo el usuario, máx 4 líneas)\nParrafo2: Rescata los puntos fuertes y mejoras sobre los desafios al usuario (máx 3 líneas)\nParrafo3: Sugerencias de apoyo para aplicar en los proximos desafios (máx 3 líneas)\n\nReglas:\n- Tono amigable y de compañero\n- Sin comillas ni llaves en el texto\n- Dirigete siempre al usuario como si hablaras con él\n- Estructura el JSON así: {\"resumen\":{\"Parrafo1\":\"...\",\"Parrafo2\":\"...\",\"Parrafo3\":\"...\"}}"""
 
         return try {
             val respuesta = GPT4Service.generateResponse(prompt)

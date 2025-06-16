@@ -2,7 +2,8 @@ package com.example.proyectodepspot.api
 
 data class ChatRequest(
     val model: String,
-    val messages: List<Message>
+    val messages: List<Message>,
+    val store: Boolean = false
 )
 
 data class Message(

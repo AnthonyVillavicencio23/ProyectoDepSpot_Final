@@ -32,11 +32,12 @@ class FirebaseChatRepository(private val context: Context) {
 
     private val responseCache = mutableMapOf<String, String>()
     private var lastRequestTime = 0L
-    private val minRequestInterval = 2000L // Aumentado a 2 segundos entre solicitudes
-    private val maxRetries = 3
+    private val minRequestInterval = 3000L // Aumentado a 3 segundos entre solicitudes
+    private val maxRetries = 3 // Aumentado el número máximo de reintentos
     private val backoffMultiplier = 2L
+    private val maxBackoffTime = 15000L // 25 segundos máximo de espera
 
-    private suspend fun makeOpenAIRequest(apiMessages: List<APIMessage>, maxRetries: Int = 3): String {
+    private suspend fun makeOpenAIRequest(apiMessages: List<APIMessage>, maxRetries: Int = 5): String {
         var retryCount = 0
         var lastError: Exception? = null
 
@@ -59,7 +60,8 @@ class FirebaseChatRepository(private val context: Context) {
 
                 val chatRequest = ChatRequest(
                     model = OpenAIConfig.MODEL,
-                    messages = apiMessages
+                    messages = apiMessages,
+                    store = true
                 )
 
                 Log.d(TAG, "Request a OpenAI: $chatRequest")
@@ -77,13 +79,33 @@ class FirebaseChatRepository(private val context: Context) {
 
             } catch (e: Exception) {
                 lastError = e
-                if (e is retrofit2.HttpException && e.code() == 429) {
-                    // Esperar con backoff exponencial
-                    val backoffTime = (backoffMultiplier shl retryCount) * 1000L
-                    Log.d(TAG, "Error 429, reintentando en ${backoffTime}ms")
-                    kotlinx.coroutines.delay(backoffTime)
-                    retryCount++
+                if (e is retrofit2.HttpException) {
+                    when (e.code()) {
+                        429 -> {
+                            // Calcular tiempo de espera con backoff exponencial
+                            val backoffTime = minOf(
+                                (backoffMultiplier shl retryCount) * 1000L,
+                                maxBackoffTime
+                            )
+                            Log.d(TAG, "Error 429 (Too Many Requests), reintentando en ${backoffTime}ms")
+                            kotlinx.coroutines.delay(backoffTime)
+                            retryCount++
+                        }
+                        401 -> {
+                            Log.e(TAG, "Error de autenticación (401)")
+                            throw e
+                        }
+                        403 -> {
+                            Log.e(TAG, "Error de autorización (403)")
+                            throw e
+                        }
+                        else -> {
+                            Log.e(TAG, "Error HTTP ${e.code()}")
+                            throw e
+                        }
+                    }
                 } else {
+                    Log.e(TAG, "Error en la solicitud a OpenAI", e)
                     throw e
                 }
             }
@@ -125,7 +147,7 @@ class FirebaseChatRepository(private val context: Context) {
         awaitClose { listener.remove() }
     }
 
-    suspend fun sendMessage(userId: String, content: String, sendAsUser: Boolean = true) {
+    suspend fun sendMessage(userId: String, content: String, systemMessage: String = OpenAIConfig.SYSTEM_PROMPT) {
         val timestamp = System.currentTimeMillis()
 
         // Verificar si ya existe un mensaje con el mismo contenido y timestamp
@@ -145,13 +167,11 @@ class FirebaseChatRepository(private val context: Context) {
         }
 
         // Analizar el mensaje en busca de signos depresivos
-        if (sendAsUser) {
-            depresionDetector.analizarMensaje(userId, content)
-        }
+        depresionDetector.analizarMensaje(userId, content)
 
-        // Enviar mensaje del usuario o del bot según el parámetro sendAsUser
+        // Enviar mensaje del usuario
         val newMessage = Message(
-            senderId = if (sendAsUser) userId else "bot_depresion",
+            senderId = userId,
             content = content,
             timestamp = timestamp
         )
@@ -162,27 +182,12 @@ class FirebaseChatRepository(private val context: Context) {
             .await()
 
         try {
-            // Verificar si tenemos una respuesta en caché
-            val cachedResponse = getCachedResponse(content)
-            if (cachedResponse != null) {
-                val botMessage = Message(
-                    senderId = "bot_depresion",
-                    content = cachedResponse,
-                    timestamp = System.currentTimeMillis()
-                )
-                usuariosCollection.document(userId)
-                    .collection("messages")
-                    .add(botMessage)
-                    .await()
-                return
-            }
-
-            // Obtener historial de mensajes (últimos 5 mensajes en lugar de 10)
+            // Obtener historial de mensajes (últimos 8 mensajes)
             val messageHistory = usuariosCollection
                 .document(userId)
                 .collection("messages")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .limit(5)
+                .limit(8)
                 .get()
                 .await()
                 .documents
@@ -197,57 +202,28 @@ class FirebaseChatRepository(private val context: Context) {
                 }
                 .reversed()
 
-            // Determinar si estamos en el flujo de introducción
-            val userMessages = messageHistory.count { it.role == "user" }
-            val isFirstUserMessage = userMessages == 1
-            val isSecondUserMessage = userMessages == 2
-
             // Crear lista de mensajes para la API
             val apiMessages = mutableListOf<APIMessage>().apply {
-                // Agregar mensaje del sistema
+                // Combinar el mensaje del sistema con la información del usuario y el detector de depresión
                 add(APIMessage(
                     role = "system",
-                    content = OpenAIConfig.SYSTEM_PROMPT
+                    content = """
+                        $systemMessage
+                        ${OpenAIConfig.SYSTEM_PROMPT}
+                    """.trimIndent()
                 ))
                 // Agregar historial de mensajes
                 addAll(messageHistory)
             }
 
-            // Si es el primer mensaje del usuario (respuesta al nombre)
-            if (isFirstUserMessage) {
-                val botResponse = "¡Hola $content! ¿Cuántos años tienes?"
-                val botMessage = Message(
-                    senderId = "bot_depresion",
-                    content = botResponse,
-                    timestamp = System.currentTimeMillis()
-                )
-                usuariosCollection.document(userId)
-                    .collection("messages")
-                    .add(botMessage)
-                    .await()
-                return
-            }
+            // Para el resto de la conversación, usar OpenAI
+            val chatRequest = ChatRequest(
+                model = OpenAIConfig.MODEL,
+                messages = apiMessages
+            )
 
-            // Si es el segundo mensaje del usuario (respuesta a la edad)
-            if (isSecondUserMessage) {
-                val botResponse = "Gracias por compartir eso conmigo. Soy Deppy, tu asistente de apoyo emocional. Estoy aquí para escucharte y ayudarte en lo que necesites. ¿Cómo te sientes hoy?"
-                val botMessage = Message(
-                    senderId = "bot_depresion",
-                    content = botResponse,
-                    timestamp = System.currentTimeMillis()
-                )
-                usuariosCollection.document(userId)
-                    .collection("messages")
-                    .add(botMessage)
-                    .await()
-                return
-            }
-
-            // Para el resto de la conversación, usar OpenAI con manejo de reintentos
-            val botResponse = makeOpenAIRequest(apiMessages)
-            
-            // Guardar la respuesta en caché
-            cacheResponse(content, botResponse)
+            val response = openAIService.createChatCompletion(request = chatRequest)
+            val botResponse = response.choices.firstOrNull()?.message?.content ?: "Lo siento, no pude procesar tu mensaje."
 
             // Enviar respuesta del bot
             val botMessage = Message(
@@ -266,7 +242,7 @@ class FirebaseChatRepository(private val context: Context) {
             // En caso de error, enviar mensaje de fallback
             val errorMessage = Message(
                 senderId = "bot_depresion",
-                content = "Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo en unos momentos. Error: ${e.message}",
+                content = "Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo en unos momentos.",
                 timestamp = System.currentTimeMillis()
             )
 
@@ -286,11 +262,19 @@ class FirebaseChatRepository(private val context: Context) {
             .await()
             .documents
 
-        // Si no hay mensajes, enviar mensaje de bienvenida
+        // Si no hay mensajes, obtener datos del usuario y enviar mensaje de bienvenida personalizado
         if (existingMessages.isEmpty()) {
+            val userDoc = usuariosCollection.document(userId).get().await()
+            val userName = userDoc.getString("nombre") ?: ""
+            val userAge = userDoc.getLong("edad")?.toInt() ?: 0
+
             val welcomeMessage = Message(
                 senderId = "bot_depresion",
-                content = "Me gustaría conocerte un poco más, ¿cuál es tu nombre?",
+                content = when {
+                    userName.isNotEmpty() && userAge > 0 -> "¡Hola $userName! Mi nombre es Deppy, tu compañero emocional, y me alegra que estés aquí. Veo que tienes $userAge años. ¿Cómo te sientes hoy? Estoy aquí para escucharte y apoyarte."
+                    userName.isNotEmpty() -> "¡Hola $userName! Me alegra que estés aquí. ¿Cómo te sientes hoy? Estoy aquí para escucharte y apoyarte."
+                    else -> "¡Hola! Me gustaría conocerte un poco más, ¿cuál es tu nombre?"
+                },
                 timestamp = System.currentTimeMillis()
             )
 

@@ -30,6 +30,7 @@ class RegistroActivity : AppCompatActivity() {
     private lateinit var tilApellido: TextInputLayout
     private lateinit var tilUsername: TextInputLayout
     private lateinit var tilTelefono: TextInputLayout
+    private lateinit var tilDNI: TextInputLayout
     private lateinit var tilFechaNacimiento: TextInputLayout
     private lateinit var tilEmail: TextInputLayout
     private lateinit var tilPassword: TextInputLayout
@@ -61,6 +62,7 @@ class RegistroActivity : AppCompatActivity() {
         tilApellido = findViewById(R.id.tilApellido)
         tilUsername = findViewById(R.id.tilUsername)
         tilTelefono = findViewById(R.id.tilTelefono)
+        tilDNI = findViewById(R.id.tilDNI)
         tilFechaNacimiento = findViewById(R.id.tilFechaNacimiento)
         tilEmail = findViewById(R.id.tilEmail)
         tilPassword = findViewById(R.id.tilPassword)
@@ -78,7 +80,7 @@ class RegistroActivity : AppCompatActivity() {
     private fun setupTextChangeListeners() {
         val fields = listOf(
             tilNombre, tilApellido, tilUsername, tilTelefono,
-            tilFechaNacimiento, tilEmail, tilPassword
+            tilDNI, tilFechaNacimiento, tilEmail, tilPassword
         )
 
         fields.forEach { field ->
@@ -185,6 +187,7 @@ class RegistroActivity : AppCompatActivity() {
                 val apellido = tilApellido.editText?.text.toString()
                 val username = tilUsername.editText?.text.toString()
                 val telefono = tilTelefono.editText?.text.toString()
+                val dni = tilDNI.editText?.text.toString()
                 val fechaNac = fechaNacimiento?.let { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it) }
 
                 // Registrar usuario en Firebase Authentication
@@ -198,7 +201,9 @@ class RegistroActivity : AppCompatActivity() {
                                 "apellido" to apellido,
                                 "username" to username,
                                 "telefono" to telefono,
+                                "dni" to dni,
                                 "fechaNacimiento" to fechaNac,
+                                "edad" to calculateAge(),
                                 "email" to email
                             )
 
@@ -234,6 +239,7 @@ class RegistroActivity : AppCompatActivity() {
         val apellido = tilApellido.editText?.text.toString()
         val username = tilUsername.editText?.text.toString()
         val telefono = tilTelefono.editText?.text.toString()
+        val dni = tilDNI.editText?.text.toString()
         val email = tilEmail.editText?.text.toString()
         val password = tilPassword.editText?.text.toString()
 
@@ -241,6 +247,7 @@ class RegistroActivity : AppCompatActivity() {
         val isApellidoValid = validateApellido(apellido)
         val isUsernameValid = validateUsername(username)
         val isTelefonoValid = validateTelefono(telefono)
+        val isDNIValid = validateDNI(dni)
         val isFechaNacimientoValid = validateFechaNacimiento()
         val isEmailValid = validateEmail(email)
         val isPasswordValid = validatePassword(password)
@@ -251,7 +258,26 @@ class RegistroActivity : AppCompatActivity() {
         }
 
         return isNombreValid && isApellidoValid && isUsernameValid && isTelefonoValid &&
-                isFechaNacimientoValid && isEmailValid && isPasswordValid && isConsentimientoValid
+                isDNIValid && isFechaNacimientoValid && isEmailValid && isPasswordValid && isConsentimientoValid
+    }
+
+    private fun validateDNI(dni: String): Boolean {
+        return when {
+            dni.isEmpty() -> {
+                tilDNI.error = "El DNI es requerido"
+                tilDNI.isErrorEnabled = true
+                false
+            }
+            !dni.matches(Regex("^[0-9]{8}$")) -> {
+                tilDNI.error = "El DNI debe tener 8 dígitos"
+                tilDNI.isErrorEnabled = true
+                false
+            }
+            else -> {
+                clearError(tilDNI)
+                true
+            }
+        }
     }
 
     private fun setupBackButton() {
@@ -274,6 +300,11 @@ class RegistroActivity : AppCompatActivity() {
             }
             nombre.length < 2 -> {
                 tilNombre.error = "El nombre debe tener al menos 2 caracteres"
+                tilNombre.isErrorEnabled = true
+                false
+            }
+            nombre.length > 12 -> {
+                tilNombre.error = "El nombre no debe exceder los 12 caracteres"
                 tilNombre.isErrorEnabled = true
                 false
             }
@@ -301,6 +332,11 @@ class RegistroActivity : AppCompatActivity() {
                 tilApellido.isErrorEnabled = true
                 false
             }
+            apellido.length > 12 -> {
+                tilApellido.error = "El apellido no debe exceder los 12 caracteres"
+                tilApellido.isErrorEnabled = true
+                false
+            }
             !apellido.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
                 tilApellido.error = "El apellido solo debe contener letras"
                 tilApellido.isErrorEnabled = true
@@ -322,6 +358,11 @@ class RegistroActivity : AppCompatActivity() {
             }
             username.length < 4 -> {
                 tilUsername.error = "El nombre de usuario debe tener al menos 4 caracteres"
+                tilUsername.isErrorEnabled = true
+                false
+            }
+            username.length > 15 -> {
+                tilUsername.error = "El nombre de usuario no debe exceder los 15 caracteres"
                 tilUsername.isErrorEnabled = true
                 false
             }
@@ -368,6 +409,11 @@ class RegistroActivity : AppCompatActivity() {
                 tilEmail.isErrorEnabled = true
                 false
             }
+            !email.endsWith("@gmail.com") -> {
+                tilEmail.error = "Solo se permiten correos de Gmail"
+                tilEmail.isErrorEnabled = true
+                false
+            }
             else -> {
                 clearError(tilEmail)
                 true
@@ -384,6 +430,11 @@ class RegistroActivity : AppCompatActivity() {
             }
             password.length < 8 -> {
                 tilPassword.error = "La contraseña debe tener al menos 8 caracteres"
+                tilPassword.isErrorEnabled = true
+                false
+            }
+            password.length > 12 -> {
+                tilPassword.error = "La contraseña no debe exceder los 12 caracteres"
                 tilPassword.isErrorEnabled = true
                 false
             }

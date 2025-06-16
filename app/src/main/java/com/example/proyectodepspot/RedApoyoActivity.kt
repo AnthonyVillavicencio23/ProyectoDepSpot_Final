@@ -80,6 +80,16 @@ class RedApoyoActivity : AppCompatActivity() {
     }
 
     private fun mostrarDialogoAgregarContacto() {
+        // Verificar si ya hay 3 contactos
+        if (contactos.size >= 3) {
+            Toast.makeText(
+                this@RedApoyoActivity,
+                "No puedes agregar más contactos, elimina uno para agregar uno nuevo",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
+
         val popupView = layoutInflater.inflate(R.layout.dialog_agregar_contacto, null)
         
         // Calcular el ancho del diálogo (90% del ancho de la pantalla)
@@ -289,6 +299,11 @@ class RedApoyoActivity : AppCompatActivity() {
                 textInputLayout.isErrorEnabled = true
                 false
             }
+            nombre.length > 12 -> {
+                textInputLayout.error = "El nombre no debe exceder los 12 caracteres"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
             !nombre.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
                 textInputLayout.error = "El nombre solo debe contener letras"
                 textInputLayout.isErrorEnabled = true
@@ -310,6 +325,16 @@ class RedApoyoActivity : AppCompatActivity() {
             }
             !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                 textInputLayout.error = "Ingrese un correo electrónico válido"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            !email.endsWith("@gmail.com") -> {
+                textInputLayout.error = "Solo se permiten correos de Gmail"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            contactos.any { it.correo.equals(email, ignoreCase = true) } -> {
+                textInputLayout.error = "Este correo ya está registrado en tus contactos"
                 textInputLayout.isErrorEnabled = true
                 false
             }

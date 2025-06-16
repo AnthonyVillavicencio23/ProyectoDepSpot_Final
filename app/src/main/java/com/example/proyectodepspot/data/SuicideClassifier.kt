@@ -185,11 +185,7 @@ class SuicideClassifier(private val context: Context) {
     }
 
     private suspend fun consultarGPT4(message: String): Boolean {
-        val systemPrompt = """
-            Eres un asistente especializado en detectar signos de depresión y pensamientos suicidas. Analiza bien las negaciones y frase del usuario.
-            Analiza el siguiente mensaje y responde SOLO con "SI" si detectas signos claros de depresión,
-            o "NO" si no detectas estos signos. No incluyas ninguna otra explicación o texto.
-        """.trimIndent()
+        val systemPrompt = """Detecta depresión o ideación suicida. Responde (SI/NO)|NIVEL|PORCENTAJE. LEVE (0–40): tristeza, desánimo leve, cansancio o poco interés. MODERADO (41–70): desesperanza o aislamiento, fatiga persistente, cambios de sueño, dificultad en concentrarse. GRAVE (71–100): ideación suicida o autolesión, desesperanza extrema, pánico severo. Ej: SI|GRAVE|85. No agregues texto extra"""
 
         val apiMessages = listOf(
             APIMessage(role = "system", content = systemPrompt),
@@ -198,13 +194,27 @@ class SuicideClassifier(private val context: Context) {
 
         val chatRequest = ChatRequest(
             model = OpenAIConfig.MODEL,
-            messages = apiMessages
+            messages = apiMessages,
+            store = true
         )
 
         val response = openAIService.createChatCompletion(request = chatRequest)
-        val gptResponse = response.choices.firstOrNull()?.message?.content?.trim()?.uppercase() ?: "NO"
+        val gptResponse = response.choices.firstOrNull()?.message?.content?.trim() ?: "NO|LEVE|0"
+        
+        val parts = gptResponse.split("|")
+        val isDepressed = parts[0].uppercase() == "SI"
+        val level = parts.getOrNull(1)?.uppercase() ?: "LEVE"
+        val percentage = parts.getOrNull(2)?.toIntOrNull() ?: 0
         
         Log.d(TAG, "Respuesta de GPT-4: $gptResponse")
-        return gptResponse == "SI"
+        
+        // Solo mostrar logs de nivel y porcentaje si es SI
+        if (isDepressed) {
+            Log.d(TAG, "Nivel de depresión: $level")
+            Log.d(TAG, "Porcentaje de depresión: $percentage%")
+        }
+        
+        // Solo retornar true si es SI y es grave con 85% o más
+        return isDepressed && level == "GRAVE" && percentage >= 85
     }
 } 

@@ -30,6 +30,7 @@ class GestionarCuentaActivity : AppCompatActivity() {
     private lateinit var fechaNacimientoTextView: TextView
     private lateinit var telefonoTextView: TextView
     private lateinit var correoTextView: TextView
+    private lateinit var dniTextView: TextView
     private var currentPopupWindow: PopupWindow? = null
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
@@ -48,6 +49,7 @@ class GestionarCuentaActivity : AppCompatActivity() {
         fechaNacimientoTextView = findViewById(R.id.fechaNacimientoTextView)
         telefonoTextView = findViewById(R.id.celularTextView)
         correoTextView = findViewById(R.id.correoTextView)
+        dniTextView = findViewById(R.id.dniTextView)
 
         // Configurar la barra superior
         val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
@@ -88,22 +90,8 @@ class GestionarCuentaActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<ImageButton>(R.id.editCorreoButton).setOnClickListener {
-            showEditPopup("Correo electrónico", correoTextView.text.toString()) { newValue ->
-                updateEmail(newValue)
-            }
-        }
-
         // Cargar datos actuales
         cargarDatosUsuario()
-    }
-
-    private fun updateEmail(newEmail: String) {
-        // Actualizar solo en Firestore
-        updateField("email", newEmail) {
-            correoTextView.text = newEmail
-            Toast.makeText(this, "Correo actualizado correctamente", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun showDatePicker() {
@@ -138,7 +126,12 @@ class GestionarCuentaActivity : AppCompatActivity() {
                     }
                     else -> {
                         val formattedDate = dateFormatter.format(calendar.time)
-                        updateField("fechaNacimiento", formattedDate) {
+                        val age = calculateAge(calendar.time)
+                        val updates = mapOf(
+                            "fechaNacimiento" to formattedDate,
+                            "edad" to age
+                        )
+                        updateFields(updates) {
                             fechaNacimientoTextView.text = formattedDate
                         }
                     }
@@ -267,6 +260,11 @@ class GestionarCuentaActivity : AppCompatActivity() {
                 textInputLayout.isErrorEnabled = true
                 false
             }
+            nombre.length > 12 -> {
+                textInputLayout.error = "El nombre no debe exceder los 12 caracteres"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
             !nombre.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
                 textInputLayout.error = "El nombre solo debe contener letras"
                 textInputLayout.isErrorEnabled = true
@@ -291,6 +289,11 @@ class GestionarCuentaActivity : AppCompatActivity() {
                 textInputLayout.isErrorEnabled = true
                 false
             }
+            apellido.length > 12 -> {
+                textInputLayout.error = "El apellido no debe exceder los 12 caracteres"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
             !apellido.matches(Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+$")) -> {
                 textInputLayout.error = "El apellido solo debe contener letras"
                 textInputLayout.isErrorEnabled = true
@@ -312,6 +315,11 @@ class GestionarCuentaActivity : AppCompatActivity() {
             }
             username.length < 4 -> {
                 textInputLayout.error = "El nombre de usuario debe tener al menos 4 caracteres"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
+            username.length > 15 -> {
+                textInputLayout.error = "El nombre de usuario no debe exceder los 15 caracteres"
                 textInputLayout.isErrorEnabled = true
                 false
             }
@@ -358,6 +366,11 @@ class GestionarCuentaActivity : AppCompatActivity() {
                 textInputLayout.isErrorEnabled = true
                 false
             }
+            !email.endsWith("@gmail.com") -> {
+                textInputLayout.error = "Solo se permiten correos de Gmail"
+                textInputLayout.isErrorEnabled = true
+                false
+            }
             else -> {
                 clearError(textInputLayout)
                 true
@@ -386,6 +399,21 @@ class GestionarCuentaActivity : AppCompatActivity() {
             }
     }
 
+    private fun updateFields(fields: Map<String, Any>, onSuccess: () -> Unit) {
+        val userId = auth.currentUser?.uid ?: return
+
+        db.collection("usuarios")
+            .document(userId)
+            .update(fields)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Campos actualizados correctamente", Toast.LENGTH_SHORT).show()
+                onSuccess()
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Error al actualizar: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+    }
+
     private fun cargarDatosUsuario() {
         val userId = auth.currentUser?.uid
         if (userId != null) {
@@ -400,6 +428,7 @@ class GestionarCuentaActivity : AppCompatActivity() {
                         fechaNacimientoTextView.text = document.getString("fechaNacimiento")
                         telefonoTextView.text = document.getString("telefono")
                         correoTextView.text = document.getString("email")
+                        dniTextView.text = document.getString("dni")
                     }
                 }
                 .addOnFailureListener { e ->

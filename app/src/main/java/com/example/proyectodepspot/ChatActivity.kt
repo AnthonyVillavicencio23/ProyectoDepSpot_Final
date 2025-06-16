@@ -44,6 +44,8 @@ class ChatActivity : AppCompatActivity() {
     private var isFirstInteraction = true
     private var isWaitingForName = false
     private var isWaitingForAge = false
+    private var userName: String = ""
+    private var userAge: Int = 0
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 123
@@ -69,6 +71,9 @@ class ChatActivity : AppCompatActivity() {
             finish()
             return
         }
+
+        // Cargar datos del usuario
+        loadUserData()
 
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottomNavigation)
         bottomNavigation.selectedItemId = R.id.nav_chat
@@ -132,6 +137,19 @@ class ChatActivity : AppCompatActivity() {
             chatRepository.initializeChat(userId)
             observeMessages(userId)
         }
+    }
+
+    private fun loadUserData() {
+        val userId = auth.currentUser?.uid ?: return
+        db.collection("usuarios")
+            .document(userId)
+            .get()
+            .addOnSuccessListener { document ->
+                if (document != null && document.exists()) {
+                    userName = document.getString("nombre") ?: ""
+                    userAge = document.getLong("edad")?.toInt() ?: 0
+                }
+            }
     }
 
     private fun handleUserMessage(message: String) {
@@ -292,7 +310,9 @@ class ChatActivity : AppCompatActivity() {
     private fun sendMessage(content: String) {
         val userId = auth.currentUser?.uid ?: return
         lifecycleScope.launch {
-            chatRepository.sendMessage(userId, content)
+            // Crear el mensaje del sistema con la información del usuario
+            val systemMessage = "Usuario: $userName, Edad: $userAge años. Mantén un tono empático y apropiado para su edad."
+            chatRepository.sendMessage(userId, content, systemMessage)
         }
     }
 } 
