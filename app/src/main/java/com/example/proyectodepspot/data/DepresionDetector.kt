@@ -87,20 +87,20 @@ class DepresionDetector(private val context: Context) {
         
         try {
             // Obtener la probabilidad de que el mensaje sea suicida usando el clasificador
-            val probabilidadSuicida = suicideClassifier.classifyMessage(mensaje)
-            Log.d(TAG, "Probabilidad de suicidio: $probabilidadSuicida")
+            val (esSuicida, motivo, porcentaje, diagnostico) = suicideClassifier.classifyMessage(mensaje)
+            Log.d(TAG, "Probabilidad de suicidio: $porcentaje%")
 
             // Si la probabilidad es alta (GPT-4 dijo SI o el análisis local es muy alto)
-            if (probabilidadSuicida > 0.8) {
-                Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Probabilidad de suicidio: $probabilidadSuicida")
+            if (esSuicida && porcentaje >= 85) {
+                Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Probabilidad de suicidio: $porcentaje%")
                 
                 // Actualizar el contador de detecciones
                 actualizarContadorDetecciones(userId)
                 
                 // Enviar alerta a contactos
-                enviarAlertaContactos(userId, emptyList(), probabilidadSuicida)
+                enviarAlertaContactos(userId, emptyList(), porcentaje / 100.0, motivo, diagnostico)
             } else {
-                Log.d(TAG, "No se detectaron signos depresivos en el mensaje")
+                Log.d(TAG, "No se detectaron signos depresivos en el mensaje o el porcentaje es menor al 85%")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error al analizar mensaje con GPT-4, usando análisis local como respaldo", e)
@@ -118,7 +118,7 @@ class DepresionDetector(private val context: Context) {
                 actualizarContadorDetecciones(userId)
                 
                 // Enviar alerta a contactos
-                enviarAlertaContactos(userId, frasesEncontradas, 0.7)
+                enviarAlertaContactos(userId, frasesEncontradas, 0.7, "No se pudo determinar el motivo específico", "Se detectaron signos de depresión en el mensaje del usuario")
             } else {
                 Log.d(TAG, "No se detectaron signos depresivos en el mensaje (análisis local)")
             }
@@ -179,7 +179,7 @@ class DepresionDetector(private val context: Context) {
         }
     }
 
-    private suspend fun enviarAlertaContactos(userId: String, frasesEncontradas: List<String>, probabilidadSuicida: Double) {
+    private suspend fun enviarAlertaContactos(userId: String, frasesEncontradas: List<String>, probabilidadSuicida: Double, motivo: String, diagnostico: String) {
         try {
             Log.d(TAG, "Buscando contactos de apoyo para el usuario: $userId")
             
@@ -249,6 +249,13 @@ class DepresionDetector(private val context: Context) {
                                         padding: 15px;
                                         margin-bottom: 20px;
                                     }
+                                    .diagnosis-box {
+                                        background-color: #e3f2fd;
+                                        border: 1px solid #bbdefb;
+                                        border-radius: 8px;
+                                        padding: 15px;
+                                        margin-bottom: 20px;
+                                    }
                                     .button {
                                         display: inline-block;
                                         padding: 10px 20px;
@@ -268,21 +275,27 @@ class DepresionDetector(private val context: Context) {
                             </head>
                             <body>
                                 <div class="header">
-                                    <img src="https://st4.depositphotos.com/5161043/25260/v/450/depositphotos_252604978-stock-illustration-water-wave-symbol-and-icon.jpg" alt="Deppy Logo" class="logo">
+                                    <img src="https://i.ibb.co/3myhSBQB/deppy-despierto2.png" alt="Deppy Logo" class="logo">
                                     <h1>Alerta de Deppy</h1>
                                 </div>
                                 
                                 <div class="alert-box">
                                     <h2>🚨 Alerta de Detección</h2>
                                     <p>Hemos detectado que el usuario <strong>${userEmail}</strong> ha mostrado signos de depresión en su conversación reciente.</p>
+                                    <p><strong>Posible punto de dolor/motivo:</strong> ${motivo}</p>
+                                </div>
+
+                                <div class="diagnosis-box">
+                                    <h3>Diagnóstico:</h3>
+                                    <p>${diagnostico}</p>
                                 </div>
 
                                 <div class="info-box">
                                     <h3>Detalles de la Situación:</h3>
                                     <ul>
                                         <li>Usuario: ${userEmail}</li>
-                                        <li>Frases detectadas: ${frasesEncontradas.joinToString(", ")}</li>
-                                        <li>Probabilidad de riesgo suicida: ${String.format("%.2f", probabilidadSuicida * 100)}%</li>
+                                        <li>Probabilidad de riesgo: ${String.format("%.2f", probabilidadSuicida * 100)}%</li>
+                                        <li>Motivo detectado: ${motivo}</li>
                                     </ul>
                                 </div>
 
@@ -312,7 +325,7 @@ class DepresionDetector(private val context: Context) {
 
                     // Enviar el correo usando Resend
                     val response = resendService.sendEmail(
-                        apiKey = "xxx",
+                        apiKey = "zzz",
                         emailRequest = emailRequest
                     )
 

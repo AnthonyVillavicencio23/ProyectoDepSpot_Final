@@ -13,6 +13,13 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import com.example.proyectodepspot.api.OpenAIConfig
 
+data class Quadruple<out A, out B, out C, out D>(
+    val first: A,
+    val second: B,
+    val third: C,
+    val fourth: D
+)
+
 class SuicideClassifier(private val context: Context) {
     private val TAG = "SuicideClassifier"
     private var ngramProbabilities: MutableMap<String, Pair<Double, Double>> = mutableMapOf()
@@ -129,7 +136,7 @@ class SuicideClassifier(private val context: Context) {
         }
     }
 
-    suspend fun classifyMessage(message: String): Double {
+    suspend fun classifyMessage(message: String): Quadruple<Boolean, String, Int, String> {
         val ngrams = generateNGrams(message.lowercase())
         var logProbSuicide = priorSuicide
         var logProbNonSuicide = priorNonSuicide
@@ -169,23 +176,22 @@ class SuicideClassifier(private val context: Context) {
 
         // Siempre consultar a GPT-4 para validación
         try {
-            val gptResponse = consultarGPT4(message)
-            // Si GPT-4 confirma, dar más peso a su decisión
+            val (gptResponse, motivo, porcentaje, diagnostico) = consultarGPT4(message)
+            // Si GPT-4 confirma, usar el porcentaje que nos devuelve
             return if (gptResponse) {
-                // Si el análisis local también sugiere depresión, aumentar la probabilidad
-                if (localProbSuicide > 0.5) 0.95 else 0.85
+                Quadruple(true, motivo, porcentaje, diagnostico)
             } else {
                 // Si el análisis local también sugiere no depresión, disminuir la probabilidad
-                if (localProbSuicide < 0.5) 0.05 else 0.15
+                Quadruple(false, motivo, if (localProbSuicide < 0.5) 5 else 15, "No se detectaron síntomas significativos")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error al consultar GPT-4, usando probabilidad local", e)
-            return localProbSuicide
+            return Quadruple(localProbSuicide > 0.5, "No se pudo determinar el motivo", (localProbSuicide * 100).toInt(), "No se pudo realizar un diagnóstico detallado")
         }
     }
 
-    private suspend fun consultarGPT4(message: String): Boolean {
-        val systemPrompt = """Detecta depresión o ideación suicida. Responde (SI/NO)|NIVEL|PORCENTAJE. LEVE (0–40): tristeza, desánimo leve, cansancio o poco interés. MODERADO (41–70): desesperanza o aislamiento, fatiga persistente, cambios de sueño, dificultad en concentrarse. GRAVE (71–100): ideación suicida o autolesión, desesperanza extrema, pánico severo. Ej: SI|GRAVE|85. No agregues texto extra"""
+    private suspend fun consultarGPT4(message: String): Quadruple<Boolean, String, Int, String> {
+        val systemPrompt = """Detecta depresión o ideación suicida. Responde (SI/NO)|NIVEL|PORCENTAJE|MOTIVO|DIAGNOSTICO.LEVE (0–40): tristeza, desánimo leve, cansancio o poco interés. MODERADO (41–70): desesperanza o aislamiento, fatiga persistente, cambios de sueño, dificultad en concentrarse. GRAVE (71–100): ideación suicida o autolesión, desesperanza extrema, pánico severo. Diagnostico breve del punto de dolor detectado y su posible impacto (Max 2 lineas).Ej: SI|GRAVE|85|problemas familiares|El usuario muestra signos de desesperanza debido a conflictos familiares recurrentes, lo que está afectando su estabilidad emocional y su capacidad para manejar el estrés diario. No agregues texto extra"""
 
         val apiMessages = listOf(
             APIMessage(role = "system", content = systemPrompt),
@@ -199,12 +205,14 @@ class SuicideClassifier(private val context: Context) {
         )
 
         val response = openAIService.createChatCompletion(request = chatRequest)
-        val gptResponse = response.choices.firstOrNull()?.message?.content?.trim() ?: "NO|LEVE|0"
+        val gptResponse = response.choices.firstOrNull()?.message?.content?.trim() ?: "NO|LEVE|0|ninguno|No se detectaron síntomas significativos"
         
         val parts = gptResponse.split("|")
         val isDepressed = parts[0].uppercase() == "SI"
         val level = parts.getOrNull(1)?.uppercase() ?: "LEVE"
         val percentage = parts.getOrNull(2)?.toIntOrNull() ?: 0
+        val motivo = parts.getOrNull(3)?.trim() ?: "ninguno"
+        val diagnostico = parts.getOrNull(4)?.trim() ?: "No se pudo determinar un diagnóstico específico"
         
         Log.d(TAG, "Respuesta de GPT-4: $gptResponse")
         
@@ -212,9 +220,11 @@ class SuicideClassifier(private val context: Context) {
         if (isDepressed) {
             Log.d(TAG, "Nivel de depresión: $level")
             Log.d(TAG, "Porcentaje de depresión: $percentage%")
+            Log.d(TAG, "Motivo detectado: $motivo")
+            Log.d(TAG, "Diagnóstico: $diagnostico")
         }
         
         // Solo retornar true si es SI y es grave con 85% o más
-        return isDepressed && level == "GRAVE" && percentage >= 85
+        return Quadruple(isDepressed && level == "GRAVE" && percentage >= 85, motivo, percentage, diagnostico)
     }
 } 
