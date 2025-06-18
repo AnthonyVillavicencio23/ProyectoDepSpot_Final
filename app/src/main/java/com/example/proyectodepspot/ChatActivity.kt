@@ -46,6 +46,7 @@ class ChatActivity : AppCompatActivity() {
     private var isWaitingForAge = false
     private var userName: String = ""
     private var userAge: Int = 0
+    private var userUsername: String = ""
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 123
@@ -148,6 +149,7 @@ class ChatActivity : AppCompatActivity() {
                 if (document != null && document.exists()) {
                     userName = document.getString("nombre") ?: ""
                     userAge = document.getLong("edad")?.toInt() ?: 0
+                    userUsername = document.getString("username") ?: ""
                 }
             }
     }
@@ -311,7 +313,7 @@ class ChatActivity : AppCompatActivity() {
         val userId = auth.currentUser?.uid ?: return
         lifecycleScope.launch {
             // Crear el mensaje del sistema con la información del usuario
-            val systemMessage = "Usuario: $userName, Edad: $userAge años. Mantén un tono empático y apropiado para su edad."
+            val systemMessage = "Usuario: $userName (Apodo: $userUsername), Edad: $userAge años. Mantén un tono empático y apropiado para su edad. Refiérete al usuario por su apodo ($userUsername)."
             chatRepository.sendMessage(userId, content, systemMessage)
         }
     }

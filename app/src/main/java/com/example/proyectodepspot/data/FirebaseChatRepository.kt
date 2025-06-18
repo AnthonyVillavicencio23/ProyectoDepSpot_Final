@@ -267,13 +267,19 @@ class FirebaseChatRepository(private val context: Context) {
             val userDoc = usuariosCollection.document(userId).get().await()
             val userName = userDoc.getString("nombre") ?: ""
             val userAge = userDoc.getLong("edad")?.toInt() ?: 0
+            val userUsername = userDoc.getString("username") ?: ""
 
             val welcomeMessage = Message(
                 senderId = "bot_depresion",
                 content = when {
-                    userName.isNotEmpty() && userAge > 0 -> "¡Hola $userName! Mi nombre es Deppy, tu compañero emocional, y me alegra que estés aquí. Veo que tienes $userAge años. ¿Cómo te sientes hoy? Estoy aquí para escucharte y apoyarte."
-                    userName.isNotEmpty() -> "¡Hola $userName! Me alegra que estés aquí. ¿Cómo te sientes hoy? Estoy aquí para escucharte y apoyarte."
-                    else -> "¡Hola! Me gustaría conocerte un poco más, ¿cuál es tu nombre?"
+                    userName.isNotEmpty() && userAge > 0 && userUsername.isNotEmpty() -> 
+                        "¡Hola $userUsername! Mi nombre es Deppy, tu compañero emocional, y me alegra que estés aquí. Veo que tienes $userAge años. ¿Cómo te sientes hoy? Estoy aquí para escucharte y apoyarte."
+                    userName.isNotEmpty() && userUsername.isNotEmpty() -> 
+                        "¡Hola $userUsername! Me alegra que estés aquí. ¿Cómo te sientes hoy? Estoy aquí para escucharte y apoyarte."
+                    userName.isNotEmpty() -> 
+                        "¡Hola $userName! Me alegra que estés aquí. ¿Cómo te sientes hoy? Estoy aquí para escucharte y apoyarte."
+                    else -> 
+                        "¡Hola! Me gustaría conocerte un poco más, ¿cuál es tu nombre?"
                 },
                 timestamp = System.currentTimeMillis()
             )

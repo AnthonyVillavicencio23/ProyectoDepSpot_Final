@@ -192,6 +192,12 @@ class DepresionDetector(private val context: Context) {
             
             Log.d(TAG, "Email del usuario: $userEmail")
 
+            // Obtener información adicional del usuario
+            val userDoc = db.collection("usuarios").document(userId).get().await()
+            val nombre = userDoc.getString("nombre") ?: ""
+            val apellido = userDoc.getString("apellido") ?: ""
+            val nombreCompleto = if (nombre.isNotEmpty() && apellido.isNotEmpty()) "$nombre $apellido" else ""
+
             // Obtener los contactos de apoyo del usuario
             val contactos = db.collection("contactos_apoyo")
                 .whereEqualTo("userEmail", userEmail)
@@ -281,7 +287,7 @@ class DepresionDetector(private val context: Context) {
                                 
                                 <div class="alert-box">
                                     <h2>🚨 Alerta de Detección</h2>
-                                    <p>Hemos detectado que el usuario <strong>${userEmail}</strong> ha mostrado signos de depresión en su conversación reciente.</p>
+                                    <p>Hemos detectado que el usuario <strong>${if (nombreCompleto.isNotEmpty()) nombreCompleto else userEmail}</strong> ha mostrado signos de depresión en su conversación reciente.</p>
                                     <p><strong>Posible punto de dolor/motivo:</strong> ${motivo}</p>
                                 </div>
 
@@ -293,7 +299,8 @@ class DepresionDetector(private val context: Context) {
                                 <div class="info-box">
                                     <h3>Detalles de la Situación:</h3>
                                     <ul>
-                                        <li>Usuario: ${userEmail}</li>
+                                        <li>Usuario: ${if (nombreCompleto.isNotEmpty()) nombreCompleto else userEmail}</li>
+                                        <li>Email: ${userEmail}</li>
                                         <li>Probabilidad de riesgo: ${String.format("%.2f", probabilidadSuicida * 100)}%</li>
                                         <li>Motivo detectado: ${motivo}</li>
                                     </ul>
@@ -325,7 +332,7 @@ class DepresionDetector(private val context: Context) {
 
                     // Enviar el correo usando Resend
                     val response = resendService.sendEmail(
-                        apiKey = "zzz",
+                        apiKey = "xxx",
                         emailRequest = emailRequest
                     )
 
