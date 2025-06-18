@@ -23,6 +23,9 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+        debug {
+            // ... existing code ...
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -30,6 +33,13 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+
+    // Añadir esta configuración para personalizar el nombre del APK
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "DepSpot-${variant.name}-${variant.versionName}.apk"
+        }
     }
 }
 
