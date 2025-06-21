@@ -176,10 +176,10 @@ class SuicideClassifier(private val context: Context) {
 
         // Siempre consultar a GPT-4 para validación
         try {
-            val (gptResponse, motivo, porcentaje, diagnostico) = consultarGPT4(message)
+            val (gptResponse, motivo, porcentaje, presuncion) = consultarGPT4(message)
             // Si GPT-4 confirma, usar el porcentaje que nos devuelve
             return if (gptResponse) {
-                Quadruple(true, motivo, porcentaje, diagnostico)
+                Quadruple(true, motivo, porcentaje, presuncion)
             } else {
                 // Si el análisis local también sugiere no depresión, disminuir la probabilidad
                 Quadruple(false, motivo, if (localProbSuicide < 0.5) 5 else 15, "No se detectaron síntomas significativos")
@@ -191,7 +191,7 @@ class SuicideClassifier(private val context: Context) {
     }
 
     private suspend fun consultarGPT4(message: String): Quadruple<Boolean, String, Int, String> {
-        val systemPrompt = """Detecta depresión o ideación suicida. Responde (SI/NO)|NIVEL|PORCENTAJE|MOTIVO|DIAGNOSTICO.LEVE (0–40): tristeza, desánimo leve, cansancio o poco interés. MODERADO (41–70): desesperanza o aislamiento, fatiga persistente, cambios de sueño, dificultad en concentrarse. GRAVE (71–100): ideación suicida o autolesión, desesperanza extrema, pánico severo. Diagnostico breve del punto de dolor detectado y su posible impacto (Max 2 lineas).Ej: SI|GRAVE|85|problemas familiares|El usuario muestra signos de desesperanza debido a conflictos familiares recurrentes, lo que está afectando su estabilidad emocional y su capacidad para manejar el estrés diario. No agregues texto extra"""
+        val systemPrompt = """Analiza el mensaje para detectar posibles signos de malestar emocional. Responde (SI/NO)|NIVEL|PORCENTAJE|MOTIVO|PRESUNCION.LEVE (0–40): tristeza, desánimo leve, cansancio o poco interés. MODERADO (41–70): desesperanza o aislamiento, fatiga persistente, cambios de sueño, dificultad en concentrarse. GRAVE (71–100): posible ideación suicida, soledad excesiva o autolesión, desesperanza extrema, pánico severo. Para el MOTIVO, usa términos algo más generales como "problemas familiares", "dificultades académicas" estos son solo ejemplos no los uses. Para la PRESUNCION, describe de forma cautelosa los posibles signos observados sin mencionar los indicadores específicos de gravedad. Usa frases como por ejemplo "podría estar experimentando", "parece mostrar signos de", solo son ejemplos, no uses estos. No menciones términos como "desesperanza extrema", "pensamientos de autolesión" o "ideación suicida" en la presunción, ya que no es un diagnostico definitivo. Ej: SI|GRAVE|85|problemas familiares|El usuario parece mostrar signos de malestar emocional que podrían estar relacionados con conflictos familiares, lo que sugiere que podría estar experimentando dificultades para manejar el estrés diario (No uses este texo literal). No agregues texto extra"""
 
         val apiMessages = listOf(
             APIMessage(role = "system", content = systemPrompt),
@@ -212,19 +212,19 @@ class SuicideClassifier(private val context: Context) {
         val level = parts.getOrNull(1)?.uppercase() ?: "LEVE"
         val percentage = parts.getOrNull(2)?.toIntOrNull() ?: 0
         val motivo = parts.getOrNull(3)?.trim() ?: "ninguno"
-        val diagnostico = parts.getOrNull(4)?.trim() ?: "No se pudo determinar un diagnóstico específico"
+        val presuncion = parts.getOrNull(4)?.trim() ?: "No se pudo determinar una presunción específica"
         
         Log.d(TAG, "Respuesta de GPT-4: $gptResponse")
         
         // Solo mostrar logs de nivel y porcentaje si es SI
         if (isDepressed) {
-            Log.d(TAG, "Nivel de depresión: $level")
-            Log.d(TAG, "Porcentaje de depresión: $percentage%")
+            Log.d(TAG, "Nivel de malestar emocional: $level")
+            Log.d(TAG, "Porcentaje de riesgo: $percentage%")
             Log.d(TAG, "Motivo detectado: $motivo")
-            Log.d(TAG, "Diagnóstico: $diagnostico")
+            Log.d(TAG, "Presunción: $presuncion")
         }
         
-        // Solo retornar true si es SI y es grave con 85% o más
-        return Quadruple(isDepressed && level == "GRAVE" && percentage >= 85, motivo, percentage, diagnostico)
+        // Solo retornar true si es SI y es grave con 80% o más
+        return Quadruple(isDepressed && level == "GRAVE" && percentage >= 80, motivo, percentage, presuncion)
     }
 } 

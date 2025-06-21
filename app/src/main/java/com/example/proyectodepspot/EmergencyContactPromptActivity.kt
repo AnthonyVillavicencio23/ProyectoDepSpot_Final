@@ -93,8 +93,13 @@ class EmergencyContactPromptActivity : AppCompatActivity() {
                 tilContactName.isErrorEnabled = true
                 false
             }
-            name.length < 2 -> {
-                tilContactName.error = "El nombre debe tener al menos 2 caracteres"
+            name.length < 4 -> {
+                tilContactName.error = "El nombre debe tener al menos 4 caracteres"
+                tilContactName.isErrorEnabled = true
+                false
+            }
+            name.length > 30 -> {
+                tilContactName.error = "El nombre no puede exceder 30 caracteres"
                 tilContactName.isErrorEnabled = true
                 false
             }

@@ -30,7 +30,6 @@ class GestionarCuentaActivity : AppCompatActivity() {
     private lateinit var fechaNacimientoTextView: TextView
     private lateinit var telefonoTextView: TextView
     private lateinit var correoTextView: TextView
-    private lateinit var dniTextView: TextView
     private var currentPopupWindow: PopupWindow? = null
     private val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 
@@ -49,7 +48,6 @@ class GestionarCuentaActivity : AppCompatActivity() {
         fechaNacimientoTextView = findViewById(R.id.fechaNacimientoTextView)
         telefonoTextView = findViewById(R.id.celularTextView)
         correoTextView = findViewById(R.id.correoTextView)
-        dniTextView = findViewById(R.id.dniTextView)
 
         // Configurar la barra superior
         val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
@@ -260,8 +258,8 @@ class GestionarCuentaActivity : AppCompatActivity() {
                 textInputLayout.isErrorEnabled = true
                 false
             }
-            nombre.length > 12 -> {
-                textInputLayout.error = "El nombre no debe exceder los 12 caracteres"
+            nombre.length > 30 -> {
+                textInputLayout.error = "El nombre no debe exceder los 30 caracteres"
                 textInputLayout.isErrorEnabled = true
                 false
             }
@@ -289,8 +287,8 @@ class GestionarCuentaActivity : AppCompatActivity() {
                 textInputLayout.isErrorEnabled = true
                 false
             }
-            apellido.length > 12 -> {
-                textInputLayout.error = "El apellido no debe exceder los 12 caracteres"
+            apellido.length > 30 -> {
+                textInputLayout.error = "El apellido no debe exceder los 30 caracteres"
                 textInputLayout.isErrorEnabled = true
                 false
             }
@@ -428,7 +426,6 @@ class GestionarCuentaActivity : AppCompatActivity() {
                         fechaNacimientoTextView.text = document.getString("fechaNacimiento")
                         telefonoTextView.text = document.getString("telefono")
                         correoTextView.text = document.getString("email")
-                        dniTextView.text = document.getString("dni")
                     }
                 }
                 .addOnFailureListener { e ->

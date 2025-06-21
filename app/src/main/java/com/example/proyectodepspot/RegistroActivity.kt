@@ -30,7 +30,6 @@ class RegistroActivity : AppCompatActivity() {
     private lateinit var tilApellido: TextInputLayout
     private lateinit var tilUsername: TextInputLayout
     private lateinit var tilTelefono: TextInputLayout
-    private lateinit var tilDNI: TextInputLayout
     private lateinit var tilFechaNacimiento: TextInputLayout
     private lateinit var tilEmail: TextInputLayout
     private lateinit var tilPassword: TextInputLayout
@@ -62,7 +61,6 @@ class RegistroActivity : AppCompatActivity() {
         tilApellido = findViewById(R.id.tilApellido)
         tilUsername = findViewById(R.id.tilUsername)
         tilTelefono = findViewById(R.id.tilTelefono)
-        tilDNI = findViewById(R.id.tilDNI)
         tilFechaNacimiento = findViewById(R.id.tilFechaNacimiento)
         tilEmail = findViewById(R.id.tilEmail)
         tilPassword = findViewById(R.id.tilPassword)
@@ -80,7 +78,7 @@ class RegistroActivity : AppCompatActivity() {
     private fun setupTextChangeListeners() {
         val fields = listOf(
             tilNombre, tilApellido, tilUsername, tilTelefono,
-            tilDNI, tilFechaNacimiento, tilEmail, tilPassword
+            tilFechaNacimiento, tilEmail, tilPassword
         )
 
         fields.forEach { field ->
@@ -187,7 +185,6 @@ class RegistroActivity : AppCompatActivity() {
                 val apellido = tilApellido.editText?.text.toString()
                 val username = tilUsername.editText?.text.toString()
                 val telefono = tilTelefono.editText?.text.toString()
-                val dni = tilDNI.editText?.text.toString()
                 val fechaNac = fechaNacimiento?.let { SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(it) }
 
                 // Registrar usuario en Firebase Authentication
@@ -201,7 +198,6 @@ class RegistroActivity : AppCompatActivity() {
                                 "apellido" to apellido,
                                 "username" to username,
                                 "telefono" to telefono,
-                                "dni" to dni,
                                 "fechaNacimiento" to fechaNac,
                                 "edad" to calculateAge(),
                                 "email" to email
@@ -239,7 +235,6 @@ class RegistroActivity : AppCompatActivity() {
         val apellido = tilApellido.editText?.text.toString()
         val username = tilUsername.editText?.text.toString()
         val telefono = tilTelefono.editText?.text.toString()
-        val dni = tilDNI.editText?.text.toString()
         val email = tilEmail.editText?.text.toString()
         val password = tilPassword.editText?.text.toString()
 
@@ -247,7 +242,6 @@ class RegistroActivity : AppCompatActivity() {
         val isApellidoValid = validateApellido(apellido)
         val isUsernameValid = validateUsername(username)
         val isTelefonoValid = validateTelefono(telefono)
-        val isDNIValid = validateDNI(dni)
         val isFechaNacimientoValid = validateFechaNacimiento()
         val isEmailValid = validateEmail(email)
         val isPasswordValid = validatePassword(password)
@@ -258,26 +252,7 @@ class RegistroActivity : AppCompatActivity() {
         }
 
         return isNombreValid && isApellidoValid && isUsernameValid && isTelefonoValid &&
-                isDNIValid && isFechaNacimientoValid && isEmailValid && isPasswordValid && isConsentimientoValid
-    }
-
-    private fun validateDNI(dni: String): Boolean {
-        return when {
-            dni.isEmpty() -> {
-                tilDNI.error = "El DNI es requerido"
-                tilDNI.isErrorEnabled = true
-                false
-            }
-            !dni.matches(Regex("^[0-9]{8}$")) -> {
-                tilDNI.error = "El DNI debe tener 8 dígitos"
-                tilDNI.isErrorEnabled = true
-                false
-            }
-            else -> {
-                clearError(tilDNI)
-                true
-            }
-        }
+                isFechaNacimientoValid && isEmailValid && isPasswordValid && isConsentimientoValid
     }
 
     private fun setupBackButton() {
@@ -303,8 +278,8 @@ class RegistroActivity : AppCompatActivity() {
                 tilNombre.isErrorEnabled = true
                 false
             }
-            nombre.length > 12 -> {
-                tilNombre.error = "El nombre no debe exceder los 12 caracteres"
+            nombre.length > 30 -> {
+                tilNombre.error = "El nombre no debe exceder los 30 caracteres"
                 tilNombre.isErrorEnabled = true
                 false
             }
@@ -332,8 +307,8 @@ class RegistroActivity : AppCompatActivity() {
                 tilApellido.isErrorEnabled = true
                 false
             }
-            apellido.length > 12 -> {
-                tilApellido.error = "El apellido no debe exceder los 12 caracteres"
+            apellido.length > 30 -> {
+                tilApellido.error = "El apellido no debe exceder los 30 caracteres"
                 tilApellido.isErrorEnabled = true
                 false
             }
@@ -433,8 +408,8 @@ class RegistroActivity : AppCompatActivity() {
                 tilPassword.isErrorEnabled = true
                 false
             }
-            password.length > 12 -> {
-                tilPassword.error = "La contraseña no debe exceder los 12 caracteres"
+            password.length > 30 -> {
+                tilPassword.error = "La contraseña no debe exceder los 30 caracteres"
                 tilPassword.isErrorEnabled = true
                 false
             }

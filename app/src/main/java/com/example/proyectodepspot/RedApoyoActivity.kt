@@ -299,8 +299,8 @@ class RedApoyoActivity : AppCompatActivity() {
                 textInputLayout.isErrorEnabled = true
                 false
             }
-            nombre.length > 12 -> {
-                textInputLayout.error = "El nombre no debe exceder los 12 caracteres"
+            nombre.length > 30 -> {
+                textInputLayout.error = "El nombre no debe exceder los 30 caracteres"
                 textInputLayout.isErrorEnabled = true
                 false
             }

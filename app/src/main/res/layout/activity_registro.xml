@@ -113,25 +113,6 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilDNI"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginHorizontal="16dp"
-            android:hint="DNI"
-            app:layout_constraintTop_toBottomOf="@id/tilTelefono">
-
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etDNI"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:maxLength="8" />
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilFechaNacimiento"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
@@ -139,7 +120,7 @@
             android:layout_marginTop="16dp"
             android:layout_marginHorizontal="16dp"
             android:hint="Fecha de nacimiento"
-            app:layout_constraintTop_toBottomOf="@id/tilDNI">
+            app:layout_constraintTop_toBottomOf="@id/tilTelefono">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etFechaNacimiento"

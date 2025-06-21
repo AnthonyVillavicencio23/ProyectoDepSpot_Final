@@ -46,6 +46,9 @@ class AddEmergencyContactActivity : AppCompatActivity() {
         if (contactName.isEmpty()) {
             tilContactName.error = "El nombre del contacto es requerido"
             isValid = false
+        } else if (contactName.length > 30) {
+            tilContactName.error = "El nombre no puede exceder 30 caracteres"
+            isValid = false
         } else {
             tilContactName.error = null
         }

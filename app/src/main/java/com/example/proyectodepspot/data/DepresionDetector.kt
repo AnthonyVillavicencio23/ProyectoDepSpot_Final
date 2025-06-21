@@ -87,20 +87,20 @@ class DepresionDetector(private val context: Context) {
         
         try {
             // Obtener la probabilidad de que el mensaje sea suicida usando el clasificador
-            val (esSuicida, motivo, porcentaje, diagnostico) = suicideClassifier.classifyMessage(mensaje)
+            val (esSuicida, motivo, porcentaje, presuncion) = suicideClassifier.classifyMessage(mensaje)
             Log.d(TAG, "Probabilidad de suicidio: $porcentaje%")
 
             // Si la probabilidad es alta (GPT-4 dijo SI o el análisis local es muy alto)
-            if (esSuicida && porcentaje >= 85) {
+            if (esSuicida && porcentaje >= 80) {
                 Log.d(TAG, "Se detectaron signos depresivos en el mensaje. Probabilidad de suicidio: $porcentaje%")
                 
                 // Actualizar el contador de detecciones
                 actualizarContadorDetecciones(userId)
                 
                 // Enviar alerta a contactos
-                enviarAlertaContactos(userId, emptyList(), porcentaje / 100.0, motivo, diagnostico)
+                enviarAlertaContactos(userId, emptyList(), porcentaje / 100.0, motivo, presuncion)
             } else {
-                Log.d(TAG, "No se detectaron signos depresivos en el mensaje o el porcentaje es menor al 85%")
+                Log.d(TAG, "No se detectaron signos depresivos en el mensaje o el porcentaje es menor al 80%")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error al analizar mensaje con GPT-4, usando análisis local como respaldo", e)
@@ -118,7 +118,7 @@ class DepresionDetector(private val context: Context) {
                 actualizarContadorDetecciones(userId)
                 
                 // Enviar alerta a contactos
-                enviarAlertaContactos(userId, frasesEncontradas, 0.7, "No se pudo determinar el motivo específico", "Se detectaron signos de depresión en el mensaje del usuario")
+                enviarAlertaContactos(userId, frasesEncontradas, 0.7, "No se pudo determinar el motivo específico", "Se detectaron posibles signos de malestar emocional en el mensaje del usuario")
             } else {
                 Log.d(TAG, "No se detectaron signos depresivos en el mensaje (análisis local)")
             }
@@ -179,7 +179,7 @@ class DepresionDetector(private val context: Context) {
         }
     }
 
-    private suspend fun enviarAlertaContactos(userId: String, frasesEncontradas: List<String>, probabilidadSuicida: Double, motivo: String, diagnostico: String) {
+    private suspend fun enviarAlertaContactos(userId: String, frasesEncontradas: List<String>, probabilidadSuicida: Double, motivo: String, presuncion: String) {
         try {
             Log.d(TAG, "Buscando contactos de apoyo para el usuario: $userId")
             
@@ -197,6 +197,9 @@ class DepresionDetector(private val context: Context) {
             val nombre = userDoc.getString("nombre") ?: ""
             val apellido = userDoc.getString("apellido") ?: ""
             val nombreCompleto = if (nombre.isNotEmpty() && apellido.isNotEmpty()) "$nombre $apellido" else ""
+
+            // Guardar la alerta en Firestore antes de enviarla
+            guardarAlertaEnFirestore(nombre, apellido, userEmail, probabilidadSuicida, motivo, presuncion)
 
             // Obtener los contactos de apoyo del usuario
             val contactos = db.collection("contactos_apoyo")
@@ -281,7 +284,7 @@ class DepresionDetector(private val context: Context) {
                             </head>
                             <body>
                                 <div class="header">
-                                    <img src="https://i.ibb.co/3myhSBQB/deppy-despierto2.png" alt="Deppy Logo" class="logo">
+                                    <img src="https://i.imgur.com/HnP3KeF.png" alt="Deppy Logo" class="logo">
                                     <h1>Alerta de Deppy</h1>
                                 </div>
                                 
@@ -292,8 +295,8 @@ class DepresionDetector(private val context: Context) {
                                 </div>
 
                                 <div class="diagnosis-box">
-                                    <h3>Diagnóstico:</h3>
-                                    <p>${diagnostico}</p>
+                                    <h3>Presunción del diagnóstico:</h3>
+                                    <p>${presuncion}</p>
                                 </div>
 
                                 <div class="info-box">
@@ -302,7 +305,7 @@ class DepresionDetector(private val context: Context) {
                                         <li>Usuario: ${if (nombreCompleto.isNotEmpty()) nombreCompleto else userEmail}</li>
                                         <li>Email: ${userEmail}</li>
                                         <li>Probabilidad de riesgo: ${String.format("%.2f", probabilidadSuicida * 100)}%</li>
-                                        <li>Motivo detectado: ${motivo}</li>
+                                        <li>Posible punto de dolor: ${motivo}</li>
                                     </ul>
                                 </div>
 
@@ -332,7 +335,7 @@ class DepresionDetector(private val context: Context) {
 
                     // Enviar el correo usando Resend
                     val response = resendService.sendEmail(
-                        apiKey = "aaa",
+                        apiKey = "Jadid",
                         emailRequest = emailRequest
                     )
 
@@ -347,6 +350,26 @@ class DepresionDetector(private val context: Context) {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error al enviar alerta a contactos", e)
+            e.printStackTrace()
+        }
+    }
+
+    private suspend fun guardarAlertaEnFirestore(nombre: String, apellido: String, correo: String, probabilidadSuicida: Double, motivo: String, presuncion: String) {
+        try {
+            val fechaAlerta = getPeruDate()
+            val alertaData = hashMapOf(
+                "nombre" to nombre,
+                "apellido" to apellido,
+                "correo" to correo,
+                "fecha_alerta" to fechaAlerta,
+                "porcentaje_riesgo" to probabilidadSuicida * 100,
+                "punto_dolor" to motivo,
+                "presuncion" to presuncion
+            )
+            db.collection("Alertas").add(alertaData).await()
+            Log.d(TAG, "Alerta guardada en Firestore para el usuario $correo en la fecha $fechaAlerta")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error al guardar alerta en Firestore", e)
             e.printStackTrace()
         }
     }
