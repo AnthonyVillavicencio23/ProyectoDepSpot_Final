@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">DepSpot</string>
+    <string name="app_name">Deppy</string>
     
     <!-- Splash Screen Messages -->
     <string-array name="splash_messages">
