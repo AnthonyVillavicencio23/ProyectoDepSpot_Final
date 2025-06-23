@@ -335,7 +335,7 @@ class DepresionDetector(private val context: Context) {
 
                     // Enviar el correo usando Resend
                     val response = resendService.sendEmail(
-                        apiKey = "x",
+                        apiKey = "ccc",
                         emailRequest = emailRequest
                     )
 
