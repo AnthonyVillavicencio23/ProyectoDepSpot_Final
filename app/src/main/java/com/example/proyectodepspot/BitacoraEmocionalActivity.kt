@@ -206,9 +206,9 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
         val peruTimeZone = TimeZone.getTimeZone("America/Lima")
         val calendar = Calendar.getInstance(peruTimeZone)
         
-        // Establecer la hora límite a las 12:00 PM del día actual
-        calendar.set(Calendar.HOUR_OF_DAY, 12)
-        calendar.set(Calendar.MINUTE, 0)
+        // Establecer la hora límite a las 11:59 PM del día actual
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
 
@@ -364,9 +364,9 @@ class BitacoraEmocionalActivity : AppCompatActivity() {
         val peruTimeZone = TimeZone.getTimeZone("America/Lima")
         val calendar = Calendar.getInstance(peruTimeZone)
         
-        // Establecer la hora límite a las 12:00 PM del día actual
-        calendar.set(Calendar.HOUR_OF_DAY, 12)
-        calendar.set(Calendar.MINUTE, 0)
+        // Establecer la hora límite a las 11:59 PM del día actual
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
 

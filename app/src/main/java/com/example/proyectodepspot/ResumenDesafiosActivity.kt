@@ -26,6 +26,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private lateinit var textViewResumen: TextView
     private lateinit var textViewTitulo: TextView
+    private lateinit var textViewFechasResumen: TextView
     private lateinit var progressBar: ProgressBar
     private lateinit var btnActualizar: Button
     private var esDesafioIA: Boolean = false
@@ -38,6 +39,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
         db = FirebaseFirestore.getInstance()
         textViewResumen = findViewById(R.id.textViewResumen)
         textViewTitulo = findViewById(R.id.textViewTitulo)
+        textViewFechasResumen = findViewById(R.id.textViewFechasResumen)
         progressBar = findViewById(R.id.progressBar)
         btnActualizar = findViewById(R.id.btnActualizar)
 
@@ -58,6 +60,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
     private fun setupActualizarButton() {
         btnActualizar.setOnClickListener {
             btnActualizar.visibility = View.GONE
+            textViewFechasResumen.visibility = View.GONE
             textViewResumen.text = "Cargando resumen..."
             progressBar.visibility = View.VISIBLE
             cargarResumenSemana()
@@ -71,6 +74,31 @@ class ResumenDesafiosActivity : AppCompatActivity() {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE"))
         dateFormat.timeZone = peruTimeZone
         return dateFormat.format(calendar.time)
+    }
+
+    private fun formatearFechasParaResumen(fechas: List<String>): String {
+        if (fechas.isEmpty()) return ""
+        
+        val peruTimeZone = TimeZone.getTimeZone("America/Lima")
+        val dateFormatInput = SimpleDateFormat("yyyy-MM-dd", Locale("es", "PE"))
+        dateFormatInput.timeZone = peruTimeZone
+        val dateFormatOutput = SimpleDateFormat("dd 'de' MMMM", Locale("es", "PE"))
+        dateFormatOutput.timeZone = peruTimeZone
+        
+        return try {
+            val fechasFormateadas = fechas.map { fecha ->
+                val date = dateFormatInput.parse(fecha)
+                dateFormatOutput.format(date ?: return "")
+            }
+            
+            if (fechasFormateadas.size == 2) {
+                "📅 Resumen correspondiente a los días ${fechasFormateadas[0]} y ${fechasFormateadas[1]}"
+            } else {
+                "📅 Resumen correspondiente a los días: ${fechasFormateadas.joinToString(", ")}"
+            }
+        } catch (e: Exception) {
+            "📅 Resumen correspondiente a los días: ${fechas.joinToString(", ")}"
+        }
     }
 
     private fun cargarResumenSemana() {
@@ -98,6 +126,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                 calendar.time = fechaInicio
                 while (!calendar.time.after(fechaActual)) {
                     val fecha = dateFormat.format(calendar.time)
+                    val esDiaActual = fecha == fechaActualStr
                     
                     // Obtener desafío predeterminado
                     val docPredeterminado = db.collection("usuarios")
@@ -112,8 +141,15 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                     if (docPredeterminado.exists()) {
                         val datos = docPredeterminado.data ?: null
                         if (datos != null) {
-                            desafiosPredeterminados.add(datos)
-                            android.util.Log.d("ResumenDesafios", "Desafío predeterminado encontrado para fecha: $fecha")
+                            val completado = datos["completado"] as? Boolean ?: false
+                            // Si es el día actual y no está completado, no se incluye para verificación de pares
+                            // Si es un día anterior o está completado, se incluye
+                            if (!esDiaActual || completado) {
+                                desafiosPredeterminados.add(datos)
+                                android.util.Log.d("ResumenDesafios", "Desafío predeterminado encontrado para fecha: $fecha, completado: $completado")
+                            } else {
+                                android.util.Log.d("ResumenDesafios", "Desafío predeterminado del día actual no completado, omitido: $fecha")
+                            }
                         }
                     }
 
@@ -130,8 +166,15 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                     if (docIA.exists()) {
                         val datos = docIA.data ?: null
                         if (datos != null) {
-                            desafiosIA.add(datos)
-                            android.util.Log.d("ResumenDesafios", "Desafío IA encontrado para fecha: $fecha")
+                            val completado = datos["completado"] as? Boolean ?: false
+                            // Si es el día actual y no está completado, no se incluye para verificación de pares
+                            // Si es un día anterior o está completado, se incluye
+                            if (!esDiaActual || completado) {
+                                desafiosIA.add(datos)
+                                android.util.Log.d("ResumenDesafios", "Desafío IA encontrado para fecha: $fecha, completado: $completado")
+                            } else {
+                                android.util.Log.d("ResumenDesafios", "Desafío IA del día actual no completado, omitido: $fecha")
+                            }
                         }
                     }
 
@@ -156,39 +199,31 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                 android.util.Log.d("ResumenDesafios", "Pares predeterminados completos: ${paresPredeterminados.size}")
                 android.util.Log.d("ResumenDesafios", "Pares IA completos: ${paresIA.size}")
 
-                // Función para verificar si un par ha pasado su fecha límite
+                // Función para verificar si un par es válido para generar resumen
+                // Si ambos desafíos están en la lista, significa que ya pasaron su día (o están completados si son del día actual)
+                // Por lo tanto, el par es válido independientemente de si están completados o no
                 fun verificarParCompletado(par: List<Map<String, Any>>): Boolean {
                     if (par.size < 2) return false
                     
-                    // Verificar cada desafío individualmente
-                    val resultados = par.map { desafio ->
-                        val fechaDesafio = dateFormat.parse(desafio["fecha"] as String)
-                        val fechaLimite = Calendar.getInstance(peruTimeZone).apply {
-                            time = fechaDesafio
-                            set(Calendar.HOUR_OF_DAY, 12)
-                            set(Calendar.MINUTE, 0)
-                            set(Calendar.SECOND, 0)
-                            set(Calendar.MILLISECOND, 0)
-                        }.time
+                    // Si ambos desafíos están en la lista, ya pasaron el filtro de recolección
+                    // Esto significa que: son días anteriores (válidos) O son del día actual pero completados
+                    // Por lo tanto, el par es válido para generar resumen
+                    val fechas = par.map { desafio ->
+                        val completado = desafio["completado"] as? Boolean ?: false
+                        val fecha = desafio["fecha"] as String
                         
-                        val haPasadoFechaLimite = fechaActual.after(fechaLimite)
+                        android.util.Log.d("ResumenDesafios", "Verificando desafío individual - Fecha: $fecha, Completado: $completado")
                         
-                        android.util.Log.d("ResumenDesafios", "Verificando desafío individual - Fecha: ${dateFormat.format(fechaDesafio)}")
-                        android.util.Log.d("ResumenDesafios", "Verificando desafío individual - Límite: ${dateFormat.format(fechaLimite)}")
-                        android.util.Log.d("ResumenDesafios", "Verificando desafío individual - Actual: ${dateFormat.format(fechaActual)}")
-                        android.util.Log.d("ResumenDesafios", "Verificando desafío individual - ¿Pasó límite?: $haPasadoFechaLimite")
-                        
-                        haPasadoFechaLimite
+                        fecha
                     }
                     
-                    // El par está completo si todos los desafíos han pasado su fecha límite
-                    val parCompletado = resultados.all { it }
-                    android.util.Log.d("ResumenDesafios", "Resultado final del par: $parCompletado")
+                    android.util.Log.d("ResumenDesafios", "Par válido con fechas: $fechas")
                     
-                    return parCompletado
+                    // El par es válido porque ambos desafíos ya pasaron el filtro de recolección
+                    return true
                 }
 
-                // Buscar el par más reciente que haya completado su fecha límite
+                // Buscar el par más reciente que sea válido para generar resumen
                 val paresARevisar = if (esDesafioIA) paresIA else paresPredeterminados
                 var parCompletado: List<Map<String, Any>>? = null
 
@@ -236,7 +271,14 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                         val resumen = ultimoResumen.data
                         if (resumen != null) {
                             val resumenTexto = resumen["resumen"] as? String ?: ""
+                            val fechas = resumen["fechas"] as? List<String> ?: emptyList()
                             withContext(Dispatchers.Main) {
+                                if (fechas.isNotEmpty()) {
+                                    textViewFechasResumen.text = formatearFechasParaResumen(fechas)
+                                    textViewFechasResumen.visibility = View.VISIBLE
+                                } else {
+                                    textViewFechasResumen.visibility = View.GONE
+                                }
                                 textViewResumen.text = resumenTexto
                                 progressBar.visibility = View.GONE
                             }
@@ -245,7 +287,8 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                     }
 
                     withContext(Dispatchers.Main) {
-                        textViewResumen.text = "No hay pares de desafíos que hayan completado su fecha límite. Por favor, espera hasta que un par de desafíos haya expirado para ver el resumen."
+                        textViewFechasResumen.visibility = View.GONE
+                        textViewResumen.text = "No hay pares de desafíos completados disponibles. Completa dos desafíos consecutivos para ver tu resumen."
                         progressBar.visibility = View.GONE
                     }
                     return@launch
@@ -260,6 +303,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                     android.util.Log.e("ResumenDesafios", "Error al generar resumen: ${e.message}")
                     if (e.message?.contains("429") == true) {
                         withContext(Dispatchers.Main) {
+                            textViewFechasResumen.visibility = View.GONE
                             textViewResumen.text = "Lo sentimos, hemos alcanzado el límite de solicitudes. Por favor, intenta nuevamente en unos minutos."
                             progressBar.visibility = View.GONE
                             btnActualizar.visibility = View.VISIBLE
@@ -267,6 +311,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                         return@launch
                     } else {
                         withContext(Dispatchers.Main) {
+                            textViewFechasResumen.visibility = View.GONE
                             textViewResumen.text = "Lo sentimos, hubo un error al generar el resumen. Por favor, intenta nuevamente más tarde."
                             progressBar.visibility = View.GONE
                             btnActualizar.visibility = View.VISIBLE
@@ -293,6 +338,9 @@ class ResumenDesafiosActivity : AppCompatActivity() {
                     .await()
 
                 withContext(Dispatchers.Main) {
+                    val fechasPar = parCompletado.map { it["fecha"] as String }
+                    textViewFechasResumen.text = formatearFechasParaResumen(fechasPar)
+                    textViewFechasResumen.visibility = View.VISIBLE
                     textViewResumen.text = resumen
                     progressBar.visibility = View.GONE
                     android.util.Log.d("ResumenDesafios", "Texto asignado al TextView")
@@ -300,6 +348,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 android.util.Log.e("ResumenDesafios", "Error en cargarResumenSemana: ${e.message}", e)
                 withContext(Dispatchers.Main) {
+                    textViewFechasResumen.visibility = View.GONE
                     textViewResumen.text = "Error al cargar el resumen: ${e.message}"
                     progressBar.visibility = View.GONE
                 }
@@ -308,7 +357,7 @@ class ResumenDesafiosActivity : AppCompatActivity() {
     }
 
     private suspend fun generarResumenGPT(desafios: List<Map<String, Any>>): String {
-        val prompt = """Analiza estos desafíos de los últimos 2 días:\n${formatearDesafiosParaGPT(desafios)}\n\nHabla como un compañero amistoso y genera un resumen motivador para el adolescente dividido en 3 partes:\nParrafo1: resumen general (menciona los desafíos claramente, aun si no los completo el usuario, máx 4 líneas)\nParrafo2: Rescata los puntos fuertes y mejoras sobre los desafios al usuario (máx 3 líneas)\nParrafo3: Sugerencias de apoyo para aplicar en los proximos desafios (máx 3 líneas)\n\nReglas:\n- Tono amigable y de compañero\n- Sin comillas ni llaves en el texto\n- Dirigete siempre al usuario como si hablaras con él\n- Estructura el JSON así: {\"resumen\":{\"Parrafo1\":\"...\",\"Parrafo2\":\"...\",\"Parrafo3\":\"...\"}}"""
+        val prompt = """Analiza estos desafíos de los últimos 2 días:\n${formatearDesafiosParaGPT(desafios)}\n\nHabla como un compañero amistoso y genera un resumen motivador para el adolescente dividido en 3 partes:\nParrafo1: resumen general (menciona los desafíos claramente, aun si no los completo el usuario, máx 4 líneas)\nParrafo2: Rescata los puntos fuertes y mejoras sobre los desafios al usuario (Sea que los hayan completado o no,máx 3 líneas)\nParrafo3: Sugerencias de apoyo para aplicar en los proximos desafios (Aún si completaron los desafios o no,máx 3 líneas)\n\nReglas:\n- Tono amigable y de compañero\n- Sin comillas ni llaves en el texto\n- Dirigete siempre al usuario como si hablaras con él\n- Estructura el JSON así: {\"resumen\":{\"Parrafo1\":\"...\",\"Parrafo2\":\"...\",\"Parrafo3\":\"...\"}}"""
 
         return try {
             val respuesta = GPT4Service.generateResponse(prompt)

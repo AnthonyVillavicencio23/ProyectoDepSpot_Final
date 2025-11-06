@@ -3,9 +3,17 @@ package com.example.proyectodepspot
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
+import android.text.SpannableString
+import android.text.Spanned
 import android.text.TextWatcher
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -36,6 +44,7 @@ class LoginActivity : AppCompatActivity() {
         setupTextChangeListeners()
         setupLoginButton()
         setupRegisterButton()
+        setupRegisterPrompt()
     }
 
     private fun initializeViews() {
@@ -99,6 +108,55 @@ class LoginActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.btnRegister).setOnClickListener {
             startActivity(Intent(this, RegistroActivity::class.java))
         }
+    }
+
+    private fun setupRegisterPrompt() {
+        val textView = findViewById<TextView>(R.id.tvRegisterPrompt)
+        val fullText = "¿No tienes cuenta? Regístrate"
+        val spannableString = SpannableString(fullText)
+        
+        // Encontrar la posición de "Regístrate"
+        val startIndex = fullText.indexOf("Regístrate")
+        val endIndex = startIndex + "Regístrate".length
+        
+        // Cambiar el color del texto base a un gris más suave
+        val baseColor = android.graphics.Color.parseColor("#757575")
+        spannableString.setSpan(ForegroundColorSpan(baseColor), 0, startIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        
+        // Hacer "Regístrate" con color primario y subrayado
+        val registerSpan = object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                startActivity(Intent(this@LoginActivity, RegistroActivity::class.java))
+            }
+            
+            override fun updateDrawState(ds: android.text.TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = true
+                ds.color = ContextCompat.getColor(this@LoginActivity, R.color.colorPrimary)
+            }
+        }
+        
+        // Hacer todo el texto clickeable
+        val fullClickableSpan = object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                startActivity(Intent(this@LoginActivity, RegistroActivity::class.java))
+            }
+            
+            override fun updateDrawState(ds: android.text.TextPaint) {
+                super.updateDrawState(ds)
+                // No cambiar el estilo, solo hacerlo clickeable
+            }
+        }
+        
+        // Aplicar el span clickeable a todo el texto
+        spannableString.setSpan(fullClickableSpan, 0, fullText.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        
+        // Aplicar el span de estilo solo a "Regístrate"
+        spannableString.setSpan(registerSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        
+        // Aplicar el texto con los spans
+        textView.text = spannableString
+        textView.movementMethod = LinkMovementMethod.getInstance()
     }
 
     private fun checkEmergencyContacts() {
